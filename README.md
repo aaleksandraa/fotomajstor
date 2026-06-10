@@ -37,6 +37,22 @@ Aplikacija: `http://127.0.0.1:8000`
 
 ## Produkcija (MySQL)
 
+### Obavezni zahtjevi servera
+
+- PHP **8.2 ili noviji** za web server i CLI/Composer proces
+- Composer 2
+- Node.js 20+ za frontend build
+- PHP ekstenzije: `ctype`, `curl`, `dom`, `fileinfo`, `filter`, `gd` ili `imagick`, `intl`, `mbstring`, `openssl`, `pdo`, `session`, `tokenizer`, `xml`
+
+Prije instalacije provjeriti verziju koju deployment proces stvarno koristi:
+
+```bash
+php -v
+composer check-platform-reqs
+```
+
+Ako Composer prijavi PHP 7.4, promjena verzije samo za web stranicu nije dovoljna. PHP verzija za terminal/CLI i Composer takođe mora biti najmanje 8.2.
+
 U `.env` postaviti:
 
 ```
@@ -47,6 +63,28 @@ DB_DATABASE=pronadji_fotografa
 DB_USERNAME=...
 DB_PASSWORD=...
 ```
+
+Zatim pokrenuti:
+
+```bash
+composer install --no-dev --optimize-autoloader
+npm ci
+npm run build
+php artisan key:generate --force
+php artisan migrate --force
+php artisan storage:link
+php artisan optimize
+```
+
+### Composer greška: PHP verzija nije kompatibilna
+
+Poruka poput:
+
+```text
+Root composer.json requires php ^8.2 but your php version (7.4.33) does not satisfy that requirement.
+```
+
+znači da hosting/deployment koristi PHP 7.4. Ne pokretati `composer update` i ne koristiti `--ignore-platform-reqs`; postaviti deployment runtime i CLI PHP na 8.2, 8.3 ili 8.4, pa ponoviti instalaciju.
 
 ## Struktura
 
