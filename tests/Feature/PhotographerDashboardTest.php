@@ -107,17 +107,31 @@ class PhotographerDashboardTest extends TestCase
     public function test_photographer_can_toggle_and_bulk_edit_availability(): void
     {
         $date = now()->addDays(3)->toDateString();
+        $secondDate = now()->addDays(5)->toDateString();
         $profile = $this->photographer->photographerProfile;
 
         Livewire::test(Availability::class)
-            ->call('toggleDate', $date);
+            ->assertSee('Odaberi sve dostupne')
+            ->assertSee('Naredni zauzeti termini')
+            ->call('selectDate', $date)
+            ->call('selectDate', $secondDate)
+            ->assertSet('selectedDates', [$date, $secondDate])
+            ->call('markSelectedUnavailable')
+            ->assertSet('selectedDates', []);
 
         $this->assertTrue($profile->unavailableDates()->whereDate('date', $date)->exists());
+        $this->assertTrue($profile->unavailableDates()->whereDate('date', $secondDate)->exists());
+        $this->get(route('photographer.show', $profile))
+            ->assertOk()
+            ->assertSee('bg-ink-50 text-ink-300 line-through', false);
 
         Livewire::test(Availability::class)
-            ->call('toggleDate', $date);
+            ->call('selectBusyDays')
+            ->assertSet('selectedDates', [$date, $secondDate])
+            ->call('markSelectedAvailable');
 
         $this->assertFalse($profile->unavailableDates()->whereDate('date', $date)->exists());
+        $this->assertFalse($profile->unavailableDates()->whereDate('date', $secondDate)->exists());
 
         Livewire::test(Availability::class)->call('markMonthUnavailable');
         $this->assertTrue($profile->unavailableDates()->exists());
