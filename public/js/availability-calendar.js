@@ -6,6 +6,7 @@ window.availabilityCalendar = (config) => ({
     selectedDate: null,
     selectedBusy: false,
     selectedLabel: '',
+    saving: false,
 
     init() {
         this.calendar = new FullCalendar.Calendar(this.$refs.calendar, {
@@ -60,17 +61,29 @@ window.availabilityCalendar = (config) => ({
     },
 
     async applyDateStatus() {
+        if (this.saving || !this.selectedDate) return;
+
         const nextBusy = !this.selectedBusy;
-        await this.$wire.setDateStatus(this.selectedDate, nextBusy);
+        this.saving = true;
 
-        this.busyDates = nextBusy
-            ? [...new Set([...this.busyDates, this.selectedDate])].sort()
-            : this.busyDates.filter((date) => date !== this.selectedDate);
+        try {
+            await this.$wire.setDateStatus(this.selectedDate, nextBusy);
 
-        this.modalOpen = false;
+            this.busyDates = nextBusy
+                ? [...new Set([...this.busyDates, this.selectedDate])].sort()
+                : this.busyDates.filter((date) => date !== this.selectedDate);
+
+            this.modalOpen = false;
+            this.refreshCalendar();
+        } finally {
+            this.saving = false;
+        }
+    },
+
+    refreshCalendar() {
         this.calendar.removeAllEvents();
         this.calendar.addEventSource(this.busyEvents());
-        this.refreshDayClasses();
+        this.$nextTick(() => this.refreshDayClasses());
     },
 
     markVisibleMonth(busy) {
@@ -87,9 +100,7 @@ window.availabilityCalendar = (config) => ({
             ? [...new Set([...this.busyDates, ...dates])].sort()
             : this.busyDates.filter((date) => !dates.includes(date));
 
-        this.calendar.removeAllEvents();
-        this.calendar.addEventSource(this.busyEvents());
-        this.refreshDayClasses();
+        this.refreshCalendar();
     },
 
     busyEvents() {

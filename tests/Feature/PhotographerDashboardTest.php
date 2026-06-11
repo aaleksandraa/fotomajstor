@@ -107,20 +107,28 @@ class PhotographerDashboardTest extends TestCase
     public function test_photographer_can_toggle_and_bulk_edit_availability(): void
     {
         $date = now()->addDays(3)->toDateString();
+        $secondDate = now()->addDays(4)->toDateString();
         $profile = $this->photographer->photographerProfile;
 
         Livewire::test(Availability::class)
             ->assertSee('Upravljajte zauzetim terminima')
             ->assertSee('Naredni zauzeti termini')
             ->assertSee('Označi kao zauzeto')
+            ->call('setDateStatus', $date, true)
+            ->call('setDateStatus', $secondDate, true)
+            ->call('setDateStatus', $date, false)
             ->call('setDateStatus', $date, true);
 
         $this->get('/dashboard/availability')
             ->assertOk()
             ->assertSee('fullcalendar@6.1.20/index.global.min.js', false)
-            ->assertSee('js/availability-calendar.js', false);
+            ->assertSee('js/availability-calendar.js', false)
+            ->assertSee('wire:key="availability-calendar-stable"', false)
+            ->assertSee('availability-open-date', false)
+            ->assertSee('availability-mark-month', false);
 
         $this->assertTrue($profile->unavailableDates()->whereDate('date', $date)->exists());
+        $this->assertTrue($profile->unavailableDates()->whereDate('date', $secondDate)->exists());
         $this->get(route('photographer.show', $profile))
             ->assertOk()
             ->assertSee('bg-ink-50 text-ink-300 line-through', false);
