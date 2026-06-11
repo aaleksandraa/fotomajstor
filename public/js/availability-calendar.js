@@ -1,4 +1,5 @@
 window.availabilityCalendar = (config) => ({
+    Calendar: null,
     calendar: null,
     busyDates: [...config.busyDates],
     visibleMonth: config.initialDate.slice(0, 7),
@@ -8,47 +9,44 @@ window.availabilityCalendar = (config) => ({
     selectedLabel: '',
     saving: false,
 
-    init() {
-        this.calendar = new FullCalendar.Calendar(this.$refs.calendar, {
-            initialView: 'dayGridMonth',
-            initialDate: config.initialDate,
-            firstDay: 1,
-            locale: config.calendarLocale,
-            height: 'auto',
-            fixedWeekCount: false,
-            showNonCurrentDates: true,
-            dayHeaderContent: (info) => this.formatWeekday(info.date),
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: '',
-            },
-            buttonText: {
-                today: 'Danas',
-            },
-            validRange: {
-                start: config.today,
-            },
-            dateClick: (info) => this.openDate(info.dateStr, this.busyDates.includes(info.dateStr)),
-            eventClick: (info) => this.openDate(info.event.startStr.slice(0, 10), true),
-            datesSet: (info) => {
-                const date = info.view.currentStart;
-                const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    async init() {
+        ({ Calendar: this.Calendar } = await import(config.libraryUrl));
+        this.mountCalendar();
+    },
 
-                this.renderLocalizedTitle(date);
+    mountCalendar() {
+        const [year, month] = this.visibleMonth.split('-').map(Number);
 
-                if (month !== this.visibleMonth) {
-                    this.visibleMonth = month;
-                    this.$wire.setMonthFromCalendar(month);
-                }
+        this.calendar?.destroy();
+        this.calendar = new this.Calendar(this.$refs.calendar, {
+            locale: this.localizedLabels(),
+            firstWeekday: 1,
+            selectedMonth: month - 1,
+            selectedYear: year,
+            selectedWeekends: [0, 6],
+            selectionDatesMode: false,
+            selectionMonthsMode: 'only-arrows',
+            selectionYearsMode: 'only-arrows',
+            displayDatesOutside: true,
+            displayDisabledDates: true,
+            disableDatesPast: true,
+            enableMonthChangeOnDayClick: false,
+            selectedTheme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+            themeAttrDetect: false,
+            onClickDate: (calendar, event) => {
+                const date = event.target.closest('[data-vc-date]')?.dataset.vcDate;
 
-                this.$nextTick(() => this.refreshDayClasses());
+                if (date) this.openDate(date, this.busyDates.includes(date));
             },
-            events: () => this.busyEvents(),
+            onClickArrow: (calendar) => {
+                window.setTimeout(() => this.syncVisibleMonth(calendar), 0);
+            },
+            onInit: () => this.decorateDays(),
+            onUpdate: () => this.decorateDays(),
         });
 
-        this.calendar.render();
-        this.refreshDayClasses();
+        this.calendar.init();
+        this.decorateDays();
     },
 
     openDate(date, busy) {
@@ -77,71 +75,84 @@ window.availabilityCalendar = (config) => ({
                 : this.busyDates.filter((date) => date !== this.selectedDate);
 
             this.modalOpen = false;
-            this.refreshCalendar();
+            this.decorateDays();
         } finally {
             this.saving = false;
         }
     },
 
-    refreshCalendar() {
-        this.calendar.removeAllEvents();
-        this.calendar.addEventSource(this.busyEvents());
-        this.$nextTick(() => this.refreshDayClasses());
-    },
-
     markVisibleMonth(busy) {
-        const start = new Date(this.calendar.view.currentStart);
-        const end = new Date(this.calendar.view.currentEnd);
+        const [year, month] = this.visibleMonth.split('-').map(Number);
+        const end = new Date(year, month, 0).getDate();
         const dates = [];
 
-        for (const date = new Date(start); date < end; date.setDate(date.getDate() + 1)) {
-            const value = this.localDate(date);
-            if (value >= config.today) dates.push(value);
+        for (let day = 1; day <= end; day += 1) {
+            const date = `${this.visibleMonth}-${String(day).padStart(2, '0')}`;
+            if (date >= config.today) dates.push(date);
         }
 
         this.busyDates = busy
             ? [...new Set([...this.busyDates, ...dates])].sort()
             : this.busyDates.filter((date) => !dates.includes(date));
 
-        this.refreshCalendar();
+        this.decorateDays();
     },
 
-    busyEvents() {
-        return this.busyDates.map((date) => ({
-            id: date,
-            title: 'Zauzet',
-            start: date,
-            allDay: true,
-            classNames: ['availability-busy-event'],
-        }));
+    syncVisibleMonth(calendar) {
+        const month = `${calendar.context.selectedYear}-${String(calendar.context.selectedMonth + 1).padStart(2, '0')}`;
+
+        if (month !== this.visibleMonth) {
+            this.visibleMonth = month;
+            this.$wire.setMonthFromCalendar(month);
+        }
+
+        this.decorateDays();
     },
 
-    refreshDayClasses() {
-        this.$refs.calendar.querySelectorAll('.fc-daygrid-day[data-date]').forEach((element) => {
-            const busy = this.busyDates.includes(element.dataset.date);
-            element.classList.toggle('availability-busy-day', busy);
-            element.classList.toggle('availability-free-day', !busy);
+    syncTheme(theme) {
+        const dark = theme === 'dark'
+            || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        this.calendar?.set({ selectedTheme: dark ? 'dark' : 'light' });
+        this.decorateDays();
+    },
+
+    decorateDays() {
+        this.$nextTick(() => {
+            this.$refs.calendar.querySelectorAll('[data-vc-date]').forEach((element) => {
+                const isCurrentMonth = element.dataset.vcDateMonth === 'current';
+                const busy = this.busyDates.includes(element.dataset.vcDate);
+                const button = element.querySelector('[data-vc-date-btn]');
+
+                element.classList.toggle('availability-busy-day', isCurrentMonth && busy);
+                element.classList.toggle('availability-free-day', isCurrentMonth && !busy);
+
+                if (button && isCurrentMonth) {
+                    button.dataset.availabilityStatus = busy ? config.busyLabel : config.freeLabel;
+                } else if (button) {
+                    delete button.dataset.availabilityStatus;
+                }
+            });
         });
     },
 
-    renderLocalizedTitle(date) {
-        const title = this.$refs.calendar.querySelector('.fc-toolbar-title');
+    localizedLabels() {
+        const months = Array.from({ length: 12 }, (_, month) => new Date(2026, month, 1));
+        const weekdays = Array.from({ length: 7 }, (_, day) => new Date(2026, 0, 4 + day));
 
-        if (title) {
-            title.textContent = new Intl.DateTimeFormat(config.intlLocale, {
-                month: 'long',
-                year: 'numeric',
-            }).format(date);
-        }
+        return {
+            months: {
+                long: months.map((date) => this.formatDate(date, { month: 'long' })),
+                short: months.map((date) => this.formatDate(date, { month: 'short' })),
+            },
+            weekdays: {
+                long: weekdays.map((date) => this.formatDate(date, { weekday: 'long' })),
+                short: weekdays.map((date) => this.formatDate(date, { weekday: 'short' })),
+            },
+        };
     },
 
-    formatWeekday(date) {
-        return new Intl.DateTimeFormat(config.intlLocale, {
-            weekday: 'long',
-        }).format(date);
-    },
-
-    localDate(date) {
-        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    formatDate(date, options) {
+        return new Intl.DateTimeFormat(config.intlLocale, options).format(date);
     },
 });

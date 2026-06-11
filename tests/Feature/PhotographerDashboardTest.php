@@ -121,12 +121,15 @@ class PhotographerDashboardTest extends TestCase
 
         $this->get('/dashboard/availability')
             ->assertOk()
-            ->assertSee('fullcalendar@6.1.20/index.global.min.js', false)
+            ->assertDontSee('fullcalendar@6.1.20', false)
+            ->assertSee('vendor/vanilla-calendar-pro/index.css', false)
             ->assertSee('js/availability-calendar.js', false)
             ->assertSee('wire:key="availability-calendar-stable"', false)
             ->assertSee('availability-open-date', false)
             ->assertSee('availability-mark-month', false)
             ->assertSee('bs-BA', false);
+
+        $this->assertFileExists(public_path('vendor/vanilla-calendar-pro/index.mjs'));
 
         $this->withSession(['locale' => 'sr'])
             ->get('/dashboard/availability')
