@@ -24,103 +24,29 @@ class Availability extends Page
 
     public PhotographerProfile $profile;
 
-    /** @var array<int, string> */
-    public array $selectedDates = [];
-
     public function mount(): void
     {
         $this->profile = auth()->user()->photographerProfile()->firstOrFail();
         $this->month = now()->startOfMonth()->format('Y-m');
     }
 
-    public function toggleDate(string $date): void
+    public function setDateStatus(string $date, bool $busy): void
     {
         $this->validateDate($date);
 
-        $existing = $this->profile->unavailableDates()->whereDate('date', $date)->first();
-
-        if ($existing) {
-            $existing->delete();
+        if ($busy) {
+            $this->profile->unavailableDates()->updateOrCreate(
+                ['date' => $date],
+                ['note' => 'Zauzeto'],
+            );
         } else {
-            $this->profile->unavailableDates()->create(['date' => $date, 'note' => 'Zauzeto']);
-        }
-    }
-
-    public function selectDate(string $date): void
-    {
-        $this->validateDate($date);
-
-        if (in_array($date, $this->selectedDates, true)) {
-            $this->selectedDates = array_values(array_diff($this->selectedDates, [$date]));
-
-            return;
+            $this->profile->unavailableDates()->whereDate('date', $date)->delete();
         }
 
-        $this->selectedDates[] = $date;
-        sort($this->selectedDates);
-    }
-
-    public function selectAvailableDays(): void
-    {
-        $this->selectedDates = collect($this->days)
-            ->reject(fn (array $day): bool => $day['past'] || ! $day['available'])
-            ->pluck('date')
-            ->values()
-            ->all();
-    }
-
-    public function selectBusyDays(): void
-    {
-        $this->selectedDates = collect($this->days)
-            ->reject(fn (array $day): bool => $day['past'] || $day['available'])
-            ->pluck('date')
-            ->values()
-            ->all();
-    }
-
-    public function clearSelection(): void
-    {
-        $this->selectedDates = [];
-    }
-
-    public function markSelectedUnavailable(): void
-    {
-        $dates = $this->validatedSelectedDates();
-
-        if ($dates === []) {
-            Notification::make()->title('Prvo odaberite jedan ili više dana')->warning()->send();
-
-            return;
-        }
-
-        $rows = collect($dates)->map(fn (string $date): array => [
-            'photographer_profile_id' => $this->profile->id,
-            'date' => $date,
-            'note' => 'Zauzeto',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ])->all();
-
-        UnavailableDate::upsert($rows, ['photographer_profile_id', 'date'], ['note', 'updated_at']);
-        $this->selectedDates = [];
-
-        Notification::make()->title(count($dates).' dana označeno kao zauzeto')->success()->send();
-    }
-
-    public function markSelectedAvailable(): void
-    {
-        $dates = $this->validatedSelectedDates();
-
-        if ($dates === []) {
-            Notification::make()->title('Prvo odaberite jedan ili više dana')->warning()->send();
-
-            return;
-        }
-
-        $this->profile->unavailableDates()->whereIn('date', $dates)->delete();
-        $this->selectedDates = [];
-
-        Notification::make()->title(count($dates).' dana označeno kao dostupno')->success()->send();
+        Notification::make()
+            ->title($busy ? 'Dan je označen kao zauzet' : 'Dan je označen kao dostupan')
+            ->success()
+            ->send();
     }
 
     public function markMonthUnavailable(): void
@@ -143,7 +69,6 @@ class Availability extends Page
         }
 
         UnavailableDate::upsert($dates, ['photographer_profile_id', 'date'], ['note', 'updated_at']);
-        $this->selectedDates = [];
 
         Notification::make()->title('Mjesec je označen kao zauzet')->success()->send();
     }
@@ -156,27 +81,14 @@ class Availability extends Page
         $this->profile->unavailableDates()
             ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
             ->delete();
-        $this->selectedDates = [];
 
         Notification::make()->title('Mjesec je označen kao dostupan')->success()->send();
     }
 
-    public function currentMonth(): void
+    public function setMonthFromCalendar(string $month): void
     {
-        $this->month = now()->startOfMonth()->format('Y-m');
-        $this->selectedDates = [];
-    }
-
-    public function previousMonth(): void
-    {
-        $this->month = Carbon::createFromFormat('Y-m', $this->month)->subMonth()->format('Y-m');
-        $this->selectedDates = [];
-    }
-
-    public function nextMonth(): void
-    {
-        $this->month = Carbon::createFromFormat('Y-m', $this->month)->addMonth()->format('Y-m');
-        $this->selectedDates = [];
+        validator(['month' => $month], ['month' => ['required', 'date_format:Y-m']])->validate();
+        $this->month = $month;
     }
 
     /** @return array<int, array{date: string, day: int, available: bool, past: bool}> */
@@ -212,7 +124,7 @@ class Availability extends Page
         return Carbon::createFromFormat('Y-m', $this->month)->translatedFormat('F Y.');
     }
 
-    /** @return array{available: int, busy: int, selected: int} */
+    /** @return array{available: int, busy: int} */
     public function getSummaryProperty(): array
     {
         $futureDays = collect($this->days)->reject(fn (array $day): bool => $day['past']);
@@ -220,8 +132,18 @@ class Availability extends Page
         return [
             'available' => $futureDays->where('available', true)->count(),
             'busy' => $futureDays->where('available', false)->count(),
-            'selected' => count($this->selectedDates),
         ];
+    }
+
+    /** @return array<int, string> */
+    public function getBusyDatesProperty(): array
+    {
+        return $this->profile->unavailableDates()
+            ->whereDate('date', '>=', today())
+            ->orderBy('date')
+            ->pluck('date')
+            ->map(fn ($date): string => Carbon::parse($date)->toDateString())
+            ->all();
     }
 
     /** @return array<int, array{date: string, label: string}> */
@@ -245,21 +167,5 @@ class Availability extends Page
             ['date' => $date],
             ['date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today']],
         )->validate();
-    }
-
-    /** @return array<int, string> */
-    private function validatedSelectedDates(): array
-    {
-        $dates = array_values(array_unique($this->selectedDates));
-
-        validator(
-            ['dates' => $dates],
-            [
-                'dates' => ['array', 'max:62'],
-                'dates.*' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
-            ],
-        )->validate();
-
-        return $dates;
     }
 }

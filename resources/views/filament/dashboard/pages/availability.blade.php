@@ -1,127 +1,83 @@
+@assets
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.20/locales-all.global.min.js"></script>
+    <script src="{{ asset('js/availability-calendar.js') }}"></script>
+@endassets
+
 <x-filament-panels::page>
-    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900 sm:p-6">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 class="text-xl font-semibold capitalize text-gray-950 dark:text-white">{{ $this->monthLabel }}</h2>
-                    <p class="mt-1 text-sm text-gray-500">Kliknite jedan ili više dana, zatim ih označite kao zauzete ili dostupne.</p>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <x-filament::button color="gray" size="sm" icon="heroicon-o-chevron-left" wire:click="previousMonth">
-                        Prethodni
-                    </x-filament::button>
-                    <x-filament::button color="gray" size="sm" wire:click="currentMonth">
-                        Danas
-                    </x-filament::button>
-                    <x-filament::button color="gray" size="sm" icon="heroicon-o-chevron-right" icon-position="after" wire:click="nextMonth">
-                        Sljedeći
-                    </x-filament::button>
-                </div>
-            </div>
-
-            <div class="mt-5 grid grid-cols-3 gap-3">
-                <div class="rounded-xl bg-emerald-50 p-3 dark:bg-emerald-950/40">
-                    <p class="text-xs font-medium text-emerald-700 dark:text-emerald-300">Dostupnih dana</p>
-                    <p class="mt-1 text-2xl font-semibold text-emerald-800 dark:text-emerald-200">{{ $this->summary['available'] }}</p>
-                </div>
-                <div class="rounded-xl bg-rose-50 p-3 dark:bg-rose-950/40">
-                    <p class="text-xs font-medium text-rose-700 dark:text-rose-300">Zauzetih dana</p>
-                    <p class="mt-1 text-2xl font-semibold text-rose-800 dark:text-rose-200">{{ $this->summary['busy'] }}</p>
-                </div>
-                <div class="rounded-xl bg-primary-50 p-3 dark:bg-primary-950/40">
-                    <p class="text-xs font-medium text-primary-700 dark:text-primary-300">Odabrano</p>
-                    <p class="mt-1 text-2xl font-semibold text-primary-800 dark:text-primary-200">{{ $this->summary['selected'] }}</p>
+    <div
+        x-data="availabilityCalendar({
+            initialDate: @js($month . '-01'),
+            today: @js(today()->toDateString()),
+            busyDates: @js($this->busyDates),
+        })"
+        class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]"
+    >
+        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
+            <div class="border-b border-gray-100 px-5 py-5 dark:border-gray-800 sm:px-7">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary-600">Kalendar dostupnosti</p>
+                        <h2 class="mt-1 text-xl font-semibold text-gray-950 dark:text-white">Upravljajte zauzetim terminima</h2>
+                        <p class="mt-1 text-sm text-gray-500">Kliknite na dan i potvrdite promjenu statusa.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="rounded-xl bg-emerald-50 px-4 py-2 dark:bg-emerald-950/40">
+                            <p class="text-xs text-emerald-700 dark:text-emerald-300">Dostupno</p>
+                            <p class="text-xl font-semibold text-emerald-800 dark:text-emerald-200">{{ $this->summary['available'] }}</p>
+                        </div>
+                        <div class="rounded-xl bg-rose-50 px-4 py-2 dark:bg-rose-950/40">
+                            <p class="text-xs text-rose-700 dark:text-rose-300">Zauzeto</p>
+                            <p class="text-xl font-semibold text-rose-800 dark:text-rose-200">{{ $this->summary['busy'] }}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="mt-5 flex flex-wrap gap-2 rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                <x-filament::button color="danger" size="sm" icon="heroicon-o-x-circle" wire:click="markSelectedUnavailable">
-                    Označi odabrane kao zauzete
-                </x-filament::button>
-                <x-filament::button color="success" size="sm" icon="heroicon-o-check-circle" wire:click="markSelectedAvailable">
-                    Označi odabrane kao dostupne
-                </x-filament::button>
-                <x-filament::button color="gray" size="sm" wire:click="selectAvailableDays">
-                    Odaberi sve dostupne
-                </x-filament::button>
-                <x-filament::button color="gray" size="sm" wire:click="selectBusyDays">
-                    Odaberi sve zauzete
-                </x-filament::button>
-                <x-filament::button color="gray" size="sm" wire:click="clearSelection">
-                    Poništi odabir
-                </x-filament::button>
+            <div class="p-4 sm:p-7">
+                <div wire:ignore x-ref="calendar" class="availability-fullcalendar"></div>
             </div>
 
-            <div class="mt-6 grid grid-cols-7 gap-1.5 text-center text-xs font-medium text-gray-400">
-                @foreach (['Pon','Uto','Sri','Čet','Pet','Sub','Ned'] as $d)
-                    <div class="py-1">{{ $d }}</div>
-                @endforeach
-            </div>
-
-            <div class="mt-2 grid grid-cols-7 gap-1.5">
-                @for ($i = 0; $i < $this->leading; $i++)<div></div>@endfor
-
-                @foreach ($this->days as $day)
-                    @php $selected = in_array($day['date'], $selectedDates, true); @endphp
-                    <button
-                        type="button"
-                        @disabled($day['past'])
-                        @unless($day['past']) wire:click="selectDate('{{ $day['date'] }}')" @endunless
-                        wire:key="day-{{ $day['date'] }}"
-                        title="{{ $day['available'] ? 'Dostupan' : 'Zauzet' }} — {{ \Illuminate\Support\Carbon::parse($day['date'])->format('d.m.Y.') }}"
-                        class="relative flex h-14 flex-col items-center justify-center rounded-xl border text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
-                            @if ($day['past']) cursor-not-allowed border-transparent bg-gray-50 text-gray-300
-                            @elseif ($selected) border-primary-500 bg-primary-100 text-primary-800 ring-2 ring-primary-400 dark:bg-primary-900/50 dark:text-primary-100
-                            @elseif ($day['available']) border-emerald-100 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300
-                            @else border-rose-200 bg-rose-100 text-rose-700 hover:border-rose-400 hover:bg-rose-200 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-300 @endif">
-                        <span>{{ $day['day'] }}</span>
-                        @unless ($day['past'])
-                            <span class="mt-0.5 text-[9px] font-medium uppercase tracking-wide opacity-75">
-                                {{ $day['available'] ? 'slobodan' : 'zauzet' }}
-                            </span>
-                        @endunless
-                        @if ($selected)
-                            <span class="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary-600"></span>
-                        @endif
-                    </button>
-                @endforeach
-            </div>
-
-            <div class="mt-5 flex flex-wrap items-center gap-5 text-xs text-gray-500">
-                <span class="inline-flex items-center gap-1.5"><span class="h-3 w-3 rounded bg-emerald-100 ring-1 ring-emerald-300"></span> Dostupan</span>
-                <span class="inline-flex items-center gap-1.5"><span class="h-3 w-3 rounded bg-rose-100 ring-1 ring-rose-300"></span> Zauzet</span>
-                <span class="inline-flex items-center gap-1.5"><span class="h-3 w-3 rounded bg-primary-100 ring-2 ring-primary-400"></span> Odabran za izmjenu</span>
+            <div class="flex flex-wrap items-center gap-5 border-t border-gray-100 px-5 py-4 text-xs text-gray-500 dark:border-gray-800 sm:px-7">
+                <span class="inline-flex items-center gap-2"><span class="h-3 w-3 rounded-full bg-emerald-500"></span> Slobodan termin</span>
+                <span class="inline-flex items-center gap-2"><span class="h-3 w-3 rounded-full bg-rose-500"></span> Zauzet termin</span>
+                <span class="inline-flex items-center gap-2"><span class="h-3 w-3 rounded-full bg-primary-500"></span> Današnji datum</span>
             </div>
         </div>
 
         <aside class="space-y-6">
-            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+            <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-900">
                 <h3 class="font-semibold text-gray-950 dark:text-white">Naredni zauzeti termini</h3>
-                <p class="mt-1 text-sm text-gray-500">Posjetioci ove datume vide kao zauzete na vašem javnom profilu.</p>
+                <p class="mt-1 text-sm text-gray-500">Kliknite termin da ga odmah označite kao dostupnog.</p>
 
                 @if ($this->upcomingBusy)
                     <div class="mt-4 space-y-2">
                         @foreach ($this->upcomingBusy as $busy)
-                            <button type="button" wire:click="toggleDate('{{ $busy['date'] }}')" class="flex w-full items-center justify-between rounded-lg bg-rose-50 px-3 py-2 text-left text-sm text-rose-700 transition hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300">
+                            <button
+                                type="button"
+                                @click="openDate(@js($busy['date']), true)"
+                                class="flex w-full items-center justify-between rounded-xl border border-rose-100 bg-rose-50 px-3 py-2.5 text-left text-sm text-rose-700 transition hover:border-rose-300 hover:bg-rose-100 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
+                            >
                                 <span class="capitalize">{{ $busy['label'] }}</span>
-                                <span class="text-xs">Oslobodi</span>
+                                <span class="text-xs font-medium">Promijeni</span>
                             </button>
                         @endforeach
                     </div>
                 @else
-                    <p class="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                    <p class="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                         Nemate označenih zauzetih termina.
                     </p>
                 @endif
             </div>
 
-            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+            <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-900">
                 <h3 class="font-semibold text-gray-950 dark:text-white">Brze izmjene mjeseca</h3>
+                <p class="mt-1 text-sm text-gray-500">Ove akcije primjenjuju se na mjesec prikazan u kalendaru.</p>
                 <div class="mt-4 grid gap-2">
-                    <x-filament::button color="danger" size="sm" wire:click="markMonthUnavailable">
+                    <x-filament::button color="danger" size="sm" wire:click="markMonthUnavailable" @click="markVisibleMonth(true)">
                         Cijeli mjesec zauzet
                     </x-filament::button>
-                    <x-filament::button color="success" size="sm" wire:click="markMonthAvailable">
+                    <x-filament::button color="success" size="sm" wire:click="markMonthAvailable" @click="markVisibleMonth(false)">
                         Cijeli mjesec dostupan
                     </x-filament::button>
                     <x-filament::button color="gray" size="sm" tag="a" :href="route('photographer.show', $profile->slug)" target="_blank">
@@ -130,5 +86,76 @@
                 </div>
             </div>
         </aside>
+
+        <div
+            x-show="modalOpen"
+            x-cloak
+            x-transition.opacity
+            @keydown.escape.window="modalOpen = false"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/60 p-4 backdrop-blur-sm"
+        >
+            <div @click.outside="modalOpen = false" class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-900">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em]" :class="selectedBusy ? 'text-rose-600' : 'text-emerald-600'" x-text="selectedBusy ? 'Zauzet termin' : 'Slobodan termin'"></p>
+                        <h3 class="mt-2 text-2xl font-semibold text-gray-950 dark:text-white" x-text="selectedLabel"></h3>
+                    </div>
+                    <button type="button" @click="modalOpen = false" class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800">
+                        <span class="sr-only">Zatvori</span>
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></svg>
+                    </button>
+                </div>
+
+                <p class="mt-4 text-sm leading-6 text-gray-600 dark:text-gray-300" x-text="selectedBusy
+                    ? 'Ovaj datum je trenutno označen kao zauzet. Možete ga ponovo učiniti dostupnim posjetiocima.'
+                    : 'Ovaj datum je trenutno slobodan. Označite ga kao zauzet ako već imate rezervaciju.'"></p>
+
+                <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                    <x-filament::button color="gray" @click="modalOpen = false">Odustani</x-filament::button>
+                    <button
+                        type="button"
+                        @click="applyDateStatus()"
+                        class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white transition"
+                        :class="selectedBusy ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-rose-600 hover:bg-rose-500'"
+                        x-text="selectedBusy ? 'Označi kao dostupno' : 'Označi kao zauzeto'"
+                    ></button>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <style>
+        .availability-fullcalendar {
+            --fc-border-color: rgb(229 231 235);
+            --fc-button-bg-color: rgb(255 255 255);
+            --fc-button-border-color: rgb(229 231 235);
+            --fc-button-text-color: rgb(55 65 81);
+            --fc-button-hover-bg-color: rgb(249 250 251);
+            --fc-button-hover-border-color: rgb(209 213 219);
+            --fc-button-active-bg-color: rgb(245 158 11);
+            --fc-button-active-border-color: rgb(245 158 11);
+            --fc-today-bg-color: rgb(254 243 199 / 0.55);
+        }
+        .availability-fullcalendar .fc-toolbar-title { font-size: 1.2rem; font-weight: 700; text-transform: capitalize; }
+        .availability-fullcalendar .fc-button { border-radius: .65rem; box-shadow: none; font-weight: 600; padding: .45rem .75rem; text-transform: none; }
+        .availability-fullcalendar .fc-col-header-cell { background: rgb(249 250 251); padding: .7rem .25rem; }
+        .availability-fullcalendar .fc-col-header-cell-cushion { color: rgb(107 114 128); font-size: .75rem; font-weight: 700; text-transform: uppercase; }
+        .availability-fullcalendar .fc-daygrid-day { cursor: pointer; transition: background-color .18s ease, box-shadow .18s ease; }
+        .availability-fullcalendar .fc-daygrid-day:hover { background: rgb(249 250 251); box-shadow: inset 0 0 0 2px rgb(245 158 11 / .35); }
+        .availability-fullcalendar .fc-daygrid-day-number { color: rgb(31 41 55); font-weight: 700; padding: .6rem; }
+        .availability-fullcalendar .availability-free-day:not(.fc-day-past) { background: rgb(240 253 244 / .65); }
+        .availability-fullcalendar .availability-busy-day { background: rgb(255 241 242 / .85); }
+        .availability-fullcalendar .availability-busy-event { background: rgb(225 29 72); border: 0; border-radius: .5rem; font-size: .7rem; font-weight: 700; margin: 0 .3rem; padding: .1rem .3rem; }
+        .availability-fullcalendar .fc-day-past { cursor: not-allowed; opacity: .45; }
+        .dark .availability-fullcalendar { --fc-border-color: rgb(55 65 81); --fc-button-bg-color: rgb(31 41 55); --fc-button-border-color: rgb(75 85 99); --fc-button-text-color: rgb(229 231 235); --fc-button-hover-bg-color: rgb(55 65 81); }
+        .dark .availability-fullcalendar .fc-col-header-cell { background: rgb(31 41 55); }
+        .dark .availability-fullcalendar .fc-daygrid-day-number { color: rgb(229 231 235); }
+        .dark .availability-fullcalendar .availability-free-day:not(.fc-day-past) { background: rgb(6 78 59 / .18); }
+        .dark .availability-fullcalendar .availability-busy-day { background: rgb(136 19 55 / .2); }
+        @media (max-width: 640px) {
+            .availability-fullcalendar .fc-toolbar { align-items: flex-start; flex-direction: column; gap: .75rem; }
+            .availability-fullcalendar .fc-daygrid-day-number { padding: .35rem; }
+            .availability-fullcalendar .availability-busy-event { font-size: 0; min-height: .4rem; padding: 0; }
+        }
+    </style>
 </x-filament-panels::page>
