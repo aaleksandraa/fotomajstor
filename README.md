@@ -76,6 +76,43 @@ php artisan storage:link
 php artisan optimize
 ```
 
+### Produkcijski e-mail i queue
+
+Potvrda registracije i reset lozinke šalju se kroz queue. SMTP konfiguracija mora koristiti stvarni mail server i port koje daje hosting. Primjer za port `587`:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_SCHEME=null
+MAIL_HOST=mail.example.com
+MAIL_PORT=587
+MAIL_USERNAME=info@example.com
+MAIL_PASSWORD="promijenite-me"
+MAIL_TIMEOUT=10
+MAIL_REQUIRE_TLS=true
+MAIL_EHLO_DOMAIN=example.com
+MAIL_FROM_ADDRESS=info@example.com
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+Ako server podržava port `465`, koristite `MAIL_SCHEME=smtps` i `MAIL_PORT=465`.
+
+Na serveru sa Supervisor/systemd procesom zadržite `QUEUE_CONNECTION=database` i stalno pokrenite:
+
+```bash
+php artisan queue:work --queue=default --sleep=3 --tries=3 --timeout=90
+```
+
+Nakon svakog deploya pokrenite:
+
+```bash
+php artisan optimize:clear
+php artisan queue:restart
+php artisan mail:diagnose
+php artisan mail:diagnose --send=adresa-za-test@example.com
+```
+
+Na hostingu bez mogućnosti stalnog queue workera postavite `QUEUE_CONNECTION=sync`, kako bi se email poslao odmah tokom zahtjeva.
+
 ### Composer greška: PHP verzija nije kompatibilna
 
 Poruka poput:
