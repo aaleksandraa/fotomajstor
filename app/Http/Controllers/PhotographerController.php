@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PhotographerProfile;
+use App\Models\PortfolioAlbum;
 use App\Support\Seo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -91,17 +92,13 @@ class PhotographerController extends Controller
         return view('public.photographer-blog', compact('photographer', 'article', 'seo'));
     }
 
-    public function portfolioAlbum(PhotographerProfile $photographer, string $album)
+    public function portfolioAlbum(PhotographerProfile $photographer, PortfolioAlbum $album)
     {
         abort_unless($photographer->active, 404);
+        abort_unless($album->active && $album->photographer_profile_id === $photographer->id, 404);
 
         $photographer->load(['primaryCity', 'primaryCountry', 'categories']);
-
-        $album = $photographer->albums()
-            ->active()
-            ->where('slug', $album)
-            ->with(['category', 'images', 'videos'])
-            ->firstOrFail();
+        $album->load(['category', 'images', 'videos']);
 
         $cityName = $photographer->primaryCity?->name;
         $categoryName = $album->category?->name;

@@ -105,6 +105,46 @@ class SmokeTest extends TestCase
         $this->get('/fotografi?date='.now()->toDateString())->assertOk();
     }
 
+    public function test_portfolio_album_slug_is_scoped_to_photographer_and_not_duplicated_on_profile(): void
+    {
+        $category = Category::firstOrFail();
+        $otherUser = User::create([
+            'name' => 'Drugi Fotograf',
+            'email' => 'drugi@test.com',
+            'password' => 'password',
+            'role' => UserRole::Photographer,
+            'email_verified_at' => now(),
+        ]);
+        $otherProfile = $otherUser->photographerProfile;
+        $otherProfile->update(['display_name' => 'Drugi Fotograf', 'slug' => 'drugi-fotograf']);
+
+        $otherAlbum = PortfolioAlbum::create([
+            'photographer_profile_id' => $otherProfile->id,
+            'category_id' => $category->id,
+            'title' => 'Galerija',
+            'slug' => 'galerija',
+            'active' => true,
+        ]);
+        PortfolioImage::create([
+            'portfolio_album_id' => $otherAlbum->id,
+            'image_path' => 'portfolio/drugi.webp',
+            'alt_text' => 'Slika drugog fotografa',
+        ]);
+
+        $this->get('/fotograf/test-fotograf')
+            ->assertOk()
+            ->assertDontSee(route('photographer.portfolio.album', ['test-fotograf', 'galerija']));
+
+        $this->get('/fotograf/test-fotograf/portfolio/galerija')
+            ->assertOk()
+            ->assertSee('Test')
+            ->assertDontSee('Slika drugog fotografa');
+
+        $this->get('/fotograf/drugi-fotograf/portfolio/galerija')
+            ->assertOk()
+            ->assertSee('Slika drugog fotografa');
+    }
+
     public function test_legacy_city_and_category_aliases_redirect_to_canonical_urls(): void
     {
         $this->get('/fotografi/grad/banja-luka')

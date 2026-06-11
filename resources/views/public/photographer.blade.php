@@ -252,11 +252,6 @@
                             <button @click="setFilter('{{ $category->slug }}')" :class="filter === '{{ $category->slug }}' ? 'pill-active' : ''" class="pill">{{ $category->name }}</button>
                         @endforeach
                     </div>
-                    <div class="mt-3 flex flex-wrap gap-2">
-                        @foreach ($photographer->albums as $album)
-                            <a href="{{ localized_route('photographer.portfolio.album', [$photographer->slug, $album->slug]) }}" class="pill">{{ $album->title }}</a>
-                        @endforeach
-                    </div>
                     @php $portfolioItemIndex = 0; @endphp
                     <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                         @foreach ($photographer->albums as $album)

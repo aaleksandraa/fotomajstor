@@ -5,7 +5,7 @@
         <a href="{{ localized_route('photographer.show', $photographer->slug) }}" class="text-sm text-ink-500 hover:text-ink-900">&larr; {{ $photographer->display_name }}</a>
 
         <header class="mt-6 max-w-3xl">
-            @if ($album->category)
+            @if ($album->category && $album->category->name !== $album->title)
                 <p class="eyebrow">{{ $album->category->name }}</p>
             @endif
             <h1 class="mt-2 font-serif text-4xl text-ink-900 sm:text-5xl">{{ $album->title }}</h1>
