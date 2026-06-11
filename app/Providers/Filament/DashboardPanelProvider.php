@@ -11,6 +11,7 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationItem;
 use Filament\Pages;
+use Filament\Pages\Auth\EmailVerification\EmailVerificationPrompt;
 use Filament\Pages\Auth\PasswordReset\RequestPasswordReset;
 use Filament\Pages\Auth\PasswordReset\ResetPassword;
 use Filament\Panel;
@@ -48,6 +49,11 @@ class DashboardPanelProvider extends PanelProvider
             ->renderHook(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER, fn () => view('filament.auth-footer'))
             ->renderHook(PanelsRenderHook::AUTH_REGISTER_FORM_AFTER, fn () => view('filament.auth-footer'))
             ->renderHook(PanelsRenderHook::AUTH_PASSWORD_RESET_REQUEST_FORM_AFTER, fn () => view('filament.auth-footer'))
+            ->renderHook(
+                PanelsRenderHook::SIMPLE_PAGE_END,
+                fn () => view('filament.email-verification-footer'),
+                scopes: [EmailVerificationPrompt::class],
+            )
             ->renderHook(
                 PanelsRenderHook::BODY_START,
                 fn () => view('filament.auth-background'),

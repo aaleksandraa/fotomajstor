@@ -1,6 +1,10 @@
 @php
     $footerCategories = \App\Models\Category::active()->ordered()->take(6)->get();
     $footerCities = \App\Models\City::active()->ordered()->with('country')->take(6)->get();
+    $accountUrl = auth()->check()
+        ? account_dashboard_url()
+        : route('locale.switch', ['locale' => app()->getLocale(), 'redirect' => url('/dashboard/register')]);
+    $accountLabel = auth()->check() ? __('Dashboard') : __('Postani fotograf');
 @endphp
 <footer class="mt-24 border-t border-ink-100 bg-ink-50">
     <div class="container-px grid grid-cols-2 gap-8 py-14 md:grid-cols-4">
@@ -37,8 +41,10 @@
             <ul class="mt-4 space-y-2">
                 <li><a href="{{ localized_route('search') }}" class="text-sm text-ink-500 transition hover:text-ink-900">{{ __('Pretraga') }}</a></li>
                 <li><a href="{{ localized_route('blog.index') }}" class="text-sm text-ink-500 transition hover:text-ink-900">{{ __('Blog') }}</a></li>
-                <li><a href="{{ route('locale.switch', ['locale' => app()->getLocale(), 'redirect' => url('/dashboard')]) }}" class="text-sm text-ink-500 transition hover:text-ink-900">{{ __('Prijava za fotografe') }}</a></li>
-                <li><a href="{{ route('locale.switch', ['locale' => app()->getLocale(), 'redirect' => url('/dashboard/register')]) }}" class="text-sm text-ink-500 transition hover:text-ink-900">{{ __('Postani fotograf') }}</a></li>
+                @guest
+                    <li><a href="{{ route('locale.switch', ['locale' => app()->getLocale(), 'redirect' => url('/dashboard')]) }}" class="text-sm text-ink-500 transition hover:text-ink-900">{{ __('Prijava za fotografe') }}</a></li>
+                @endguest
+                <li><a href="{{ $accountUrl }}" class="text-sm text-ink-500 transition hover:text-ink-900">{{ $accountLabel }}</a></li>
             </ul>
         </div>
     </div>

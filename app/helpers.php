@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 if (! function_exists('media_url')) {
@@ -43,6 +43,16 @@ if (! function_exists('localized_route')) {
         $localizedName = $locale !== $default ? $locale.'.'.$name : $name;
 
         return route(Route::has($localizedName) ? $localizedName : $name, $parameters, $absolute);
+    }
+}
+
+if (! function_exists('account_dashboard_url')) {
+    /**
+     * Resolve the correct private panel for the authenticated user.
+     */
+    function account_dashboard_url(): string
+    {
+        return auth()->user()?->isAdmin() ? url('/admin') : url('/dashboard');
     }
 }
 
@@ -127,6 +137,7 @@ if (! function_exists('safe_public_html')) {
 
                     if (str_starts_with($name, 'on') || ! in_array($name, $allowedForTag, true)) {
                         $node->removeAttributeNode($attribute);
+
                         continue;
                     }
 
@@ -134,6 +145,7 @@ if (! function_exists('safe_public_html')) {
                         $scheme = parse_url($value, PHP_URL_SCHEME);
                         if ($scheme !== null && ! in_array(strtolower($scheme), $allowedSchemes, true)) {
                             $node->removeAttributeNode($attribute);
+
                             continue;
                         }
                     }

@@ -157,6 +157,36 @@ class AuthLocaleWebpTest extends TestCase
         $this->actingAs($user)
             ->get('/dashboard')
             ->assertRedirect('/dashboard/email-verification/prompt');
+
+        $this->get('/dashboard/email-verification/prompt')
+            ->assertOk()
+            ->assertSee('Potvrdite e-mail adresu')
+            ->assertSee('Poslali smo poruku na')
+            ->assertSee('Niste primili e-mail?')
+            ->assertSee('Pošalji ponovo')
+            ->assertSee('Nazad na web stranicu')
+            ->assertSee('Odjavi se')
+            ->assertDontSee('filament-panels::', false);
+    }
+
+    public function test_public_navigation_uses_dashboard_for_authenticated_user(): void
+    {
+        $user = User::factory()->create(['role' => UserRole::Photographer]);
+
+        $this->actingAs($user)
+            ->get('/')
+            ->assertOk()
+            ->assertSee('Dashboard')
+            ->assertSee('href="'.url('/dashboard').'"', false)
+            ->assertDontSee('Postani fotograf');
+    }
+
+    public function test_public_navigation_uses_registration_for_guest(): void
+    {
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Postani fotograf')
+            ->assertDontSee('href="'.url('/dashboard').'"', false);
     }
 
     public function test_photographer_can_request_password_reset_email(): void
