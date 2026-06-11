@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PortfolioImageResource extends Resource
 {
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $model = PortfolioImage::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-photo';

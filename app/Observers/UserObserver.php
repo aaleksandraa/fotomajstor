@@ -29,10 +29,26 @@ class UserObserver
         $profile = $user->photographerProfile()->create([
             'display_name' => $user->name,
             'slug' => $slug,
-            'active' => false,
-            'verified' => false,
+            'active' => $user->hasVerifiedEmail(),
+            'verified' => $user->hasVerifiedEmail(),
         ]);
 
         $profile->socialLinks()->create([]);
+    }
+
+    public function updated(User $user): void
+    {
+        if (
+            $user->role !== UserRole::Photographer
+            || ! $user->wasChanged('email_verified_at')
+            || ! $user->hasVerifiedEmail()
+        ) {
+            return;
+        }
+
+        $user->photographerProfile()->update([
+            'active' => true,
+            'verified' => true,
+        ]);
     }
 }

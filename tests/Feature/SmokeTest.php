@@ -234,7 +234,7 @@ class SmokeTest extends TestCase
         $this->actingAs($user)->get('/dashboard/edit-profile')->assertOk();
         $this->actingAs($user)->get('/dashboard/availability')->assertOk();
         $this->actingAs($user)->get('/dashboard/portfolio-images')->assertOk();
-        $this->actingAs($user)->get('/dashboard/portfolio-albums')->assertNotFound();
+        $this->actingAs($user)->get('/dashboard/portfolio-albums')->assertOk();
         $this->actingAs($user)->get('/dashboard/photographer-blog-posts')->assertOk();
     }
 

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Http\Responses\DashboardEmailVerificationResponse;
+use App\Http\Responses\DashboardLoginResponse;
 use App\Http\Responses\DashboardRegistrationResponse;
 use App\Models\BlogPost;
 use App\Models\Category;
@@ -18,6 +20,8 @@ use App\Models\PortfolioVideo;
 use App\Observers\SeoContentObserver;
 use App\Support\FilamentWebpUpload;
 use Filament\Forms\Components\FileUpload;
+use Filament\Http\Responses\Auth\Contracts\EmailVerificationResponse;
+use Filament\Http\Responses\Auth\Contracts\LoginResponse;
 use Filament\Http\Responses\Auth\Contracts\RegistrationResponse;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
@@ -32,7 +36,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(LoginResponse::class, DashboardLoginResponse::class);
         $this->app->bind(RegistrationResponse::class, DashboardRegistrationResponse::class);
+        $this->app->bind(EmailVerificationResponse::class, DashboardEmailVerificationResponse::class);
     }
 
     /**

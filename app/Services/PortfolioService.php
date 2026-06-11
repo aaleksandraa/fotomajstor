@@ -10,17 +10,32 @@ use Illuminate\Support\Facades\DB;
 
 class PortfolioService
 {
-    public function addImage(PhotographerProfile $profile, Category $category, string $imagePath): PortfolioImage
+    /**
+     * @param  array<int, string>  $imagePaths
+     */
+    public function addImages(PhotographerProfile $profile, Category $category, array $imagePaths): PortfolioAlbum
     {
-        return DB::transaction(function () use ($profile, $category, $imagePath): PortfolioImage {
+        return DB::transaction(function () use ($profile, $category, $imagePaths): PortfolioAlbum {
             $album = PortfolioAlbum::forProfileCategory($profile, $category);
             $profile->categories()->syncWithoutDetaching([$category->id]);
+            $nextSortOrder = ((int) $album->images()->max('sort_order')) + 1;
 
-            return PortfolioImage::create([
-                'portfolio_album_id' => $album->id,
-                'image_path' => $imagePath,
-            ]);
+            foreach ($imagePaths as $imagePath) {
+                $album->images()->create([
+                    'image_path' => $imagePath,
+                    'sort_order' => $nextSortOrder++,
+                ]);
+            }
+
+            return $album;
         });
+    }
+
+    public function addImage(PhotographerProfile $profile, Category $category, string $imagePath): PortfolioImage
+    {
+        $album = $this->addImages($profile, $category, [$imagePath]);
+
+        return $album->images()->latest('id')->firstOrFail();
     }
 
     public function updateImage(PortfolioImage $image, PhotographerProfile $profile, Category $category, string $imagePath): PortfolioImage

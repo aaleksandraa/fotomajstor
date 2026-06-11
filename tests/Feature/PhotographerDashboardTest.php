@@ -6,9 +6,17 @@ use App\Enums\ServiceType;
 use App\Enums\UserRole;
 use App\Filament\Dashboard\Pages\Availability;
 use App\Filament\Dashboard\Pages\EditProfile;
+use App\Filament\Dashboard\Resources\PortfolioAlbumResource;
+use App\Filament\Dashboard\Resources\PortfolioAlbumResource\Pages\EditPortfolioAlbum;
+use App\Filament\Dashboard\Resources\PortfolioAlbumResource\RelationManagers\ImagesRelationManager;
+use App\Http\Responses\DashboardLoginResponse;
+use App\Models\Category;
 use App\Models\User;
+use App\Services\PortfolioService;
+use Database\Seeders\CategorySeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -48,18 +56,52 @@ class PhotographerDashboardTest extends TestCase
             ->assertSee('Otvori web stranicu');
     }
 
-    public function test_photographer_can_preview_own_inactive_profile_but_guest_cannot(): void
+    public function test_verified_photographer_profile_is_public(): void
     {
         $profile = $this->photographer->photographerProfile;
 
         $this->get(route('photographer.show', $profile))
             ->assertOk()
-            ->assertSee('Pregled vašeg profila')
-            ->assertSee('<meta name="robots" content="noindex, follow">', false);
+            ->assertSee('<meta name="robots" content="index, follow">', false);
 
         auth()->logout();
 
-        $this->get(route('photographer.show', $profile))->assertNotFound();
+        $this->get(route('photographer.show', $profile))->assertOk();
+    }
+
+    public function test_email_verification_automatically_publishes_profile_and_opens_profile_editor(): void
+    {
+        $user = User::factory()->unverified()->create(['role' => UserRole::Photographer]);
+        $this->actingAs($user);
+
+        $this->assertFalse($user->photographerProfile->active);
+        $this->assertFalse($user->photographerProfile->verified);
+
+        $verificationUrl = URL::temporarySignedRoute(
+            'filament.dashboard.auth.email-verification.verify',
+            now()->addMinutes(30),
+            ['id' => $user->id, 'hash' => sha1($user->email)],
+        );
+
+        $this->get($verificationUrl)->assertRedirect('/dashboard/edit-profile');
+
+        $profile = $user->photographerProfile()->firstOrFail();
+        $this->assertTrue($profile->active);
+        $this->assertTrue($profile->verified);
+        $this->assertNotNull($user->fresh()->email_verified_at);
+    }
+
+    public function test_first_login_opens_profile_editor_until_profile_is_saved(): void
+    {
+        $response = app(DashboardLoginResponse::class)->toResponse(request());
+
+        $this->assertSame(url('/dashboard/edit-profile'), $response->getTargetUrl());
+
+        $this->photographer->photographerProfile()->update(['onboarding_completed_at' => now()]);
+
+        $response = app(DashboardLoginResponse::class)->toResponse(request());
+
+        $this->assertSame(url('/dashboard'), $response->getTargetUrl());
     }
 
     public function test_photographer_can_toggle_and_bulk_edit_availability(): void
@@ -96,6 +138,65 @@ class PhotographerDashboardTest extends TestCase
         $this->assertSame(
             ServiceType::PhotographerVideographer,
             $this->photographer->photographerProfile()->firstOrFail()->service_type,
+        );
+        $this->assertNotNull($this->photographer->photographerProfile()->firstOrFail()->onboarding_completed_at);
+    }
+
+    public function test_portfolio_is_managed_as_category_albums_with_bulk_upload_and_reordering(): void
+    {
+        $this->seed(CategorySeeder::class);
+        $category = Category::firstOrFail();
+        $profile = $this->photographer->photographerProfile;
+
+        $album = app(PortfolioService::class)->addImages($profile, $category, [
+            'portfolio/first.webp',
+            'portfolio/second.webp',
+            'portfolio/third.webp',
+        ]);
+
+        $this->get('/dashboard/portfolio-albums/create')
+            ->assertOk()
+            ->assertSee('Kategorija albuma')
+            ->assertSee('Fotografije')
+            ->assertDontSee('Alt tekst');
+
+        $this->get('/dashboard/portfolio-albums')
+            ->assertOk()
+            ->assertSee($category->name)
+            ->assertSee('Otvori album');
+
+        $this->get("/dashboard/portfolio-albums/{$album->id}/edit")
+            ->assertOk()
+            ->assertDontSee('Alt tekst');
+
+        $other = User::factory()->create(['role' => UserRole::Photographer]);
+        $this->actingAs($other);
+        $this->assertFalse(PortfolioAlbumResource::getEloquentQuery()->whereKey($album->id)->exists());
+        $this->assertFalse(ImagesRelationManager::canViewForRecord($album, EditPortfolioAlbum::class));
+        $this->actingAs($this->photographer);
+
+        Livewire::test(ImagesRelationManager::class, [
+            'ownerRecord' => $album,
+            'pageClass' => EditPortfolioAlbum::class,
+        ])
+            ->assertTableActionExists('uploadImages')
+            ->callTableAction('uploadImages', data: [
+                'image_paths' => ['portfolio/fourth.webp', 'portfolio/fifth.webp'],
+            ])
+            ->assertHasNoTableActionErrors();
+
+        $images = $album->images()->orderBy('sort_order')->get();
+        $this->assertCount(5, $images);
+        $this->assertSame([1, 2, 3, 4, 5], $images->pluck('sort_order')->all());
+
+        Livewire::test(ImagesRelationManager::class, [
+            'ownerRecord' => $album,
+            'pageClass' => EditPortfolioAlbum::class,
+        ])->call('reorderTable', $images->pluck('id')->reverse()->values()->all());
+
+        $this->assertSame(
+            $images->pluck('id')->reverse()->values()->all(),
+            $album->images()->orderBy('sort_order')->pluck('id')->all(),
         );
     }
 }

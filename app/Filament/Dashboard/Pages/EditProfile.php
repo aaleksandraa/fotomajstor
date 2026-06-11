@@ -119,6 +119,7 @@ class EditProfile extends Page implements HasForms
         unset($data['categories'], $data['cities'], $data['social'], $data['id'], $data['user_id'], $data['slug'],
             $data['active'], $data['verified'], $data['featured'], $data['profile_views'], $data['created_at'], $data['updated_at']);
 
+        $data['onboarding_completed_at'] = $this->profile->onboarding_completed_at ?? now();
         $this->profile->update($data);
         $this->profile->socialLinks()->updateOrCreate([], $social);
         $this->profile->categories()->sync($categories);

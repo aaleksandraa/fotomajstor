@@ -21,6 +21,7 @@ class PhotographerProfile extends Model
         'service_type' => ServiceType::class,
         'verified' => 'boolean',
         'active' => 'boolean',
+        'onboarding_completed_at' => 'datetime',
         'featured' => 'boolean',
         'experience_years' => 'integer',
         'profile_views' => 'integer',
