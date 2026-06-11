@@ -16,6 +16,10 @@ return [
         'notification_resent' => [
             'title' => 'E-mail za potvrdu ponovno je poslan.',
         ],
+        'notification_failed' => [
+            'title' => 'E-mail trenutačno nije moguće poslati',
+            'body' => 'Pokušajte ponovno kasnije. Ako se problem nastavi, kontaktirajte podršku.',
+        ],
         'notification_resend_throttled' => [
             'title' => 'Previše pokušaja ponovnog slanja',
             'body' => 'Pokušajte ponovno za :seconds sekundi.',

@@ -10,13 +10,27 @@ use App\Models\User;
 use Filament\Forms\Components\Component;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Pages\Auth\Register as BaseRegister;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class Register extends BaseRegister
 {
+    protected function sendEmailVerificationNotification(Model $user): void
+    {
+        try {
+            parent::sendEmailVerificationNotification($user);
+        } catch (Throwable $exception) {
+            Log::error('Initial email verification delivery failed.', [
+                'user_id' => $user->getKey(),
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+    }
+
     protected function getForms(): array
     {
         return [

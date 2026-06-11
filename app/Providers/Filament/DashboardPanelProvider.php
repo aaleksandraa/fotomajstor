@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Dashboard\Pages\Auth\EmailVerificationPrompt;
 use App\Filament\Dashboard\Pages\Auth\Login;
 use App\Filament\Dashboard\Pages\Auth\Register;
 use App\Http\Middleware\SetLocale;
@@ -11,7 +12,6 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationItem;
 use Filament\Pages;
-use Filament\Pages\Auth\EmailVerification\EmailVerificationPrompt;
 use Filament\Pages\Auth\PasswordReset\RequestPasswordReset;
 use Filament\Pages\Auth\PasswordReset\ResetPassword;
 use Filament\Panel;
@@ -41,7 +41,7 @@ class DashboardPanelProvider extends PanelProvider
             ->registration(Register::class)
             ->profile()
             ->passwordReset()
-            ->emailVerification()
+            ->emailVerification(EmailVerificationPrompt::class)
             ->colors([
                 'primary' => Color::Amber,
             ])

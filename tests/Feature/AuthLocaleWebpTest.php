@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\ProfileType;
 use App\Enums\ServiceType;
 use App\Enums\UserRole;
+use App\Filament\Dashboard\Pages\Auth\EmailVerificationPrompt;
 use App\Filament\Dashboard\Pages\Auth\Register;
 use App\Models\City;
 use App\Models\User;
@@ -187,6 +188,53 @@ class AuthLocaleWebpTest extends TestCase
             ->assertOk()
             ->assertSee('Postani fotograf')
             ->assertDontSee('href="'.url('/dashboard').'"', false);
+    }
+
+    public function test_verification_resend_smtp_failure_shows_notification_instead_of_server_error(): void
+    {
+        $user = User::factory()->unverified()->create(['role' => UserRole::Photographer]);
+
+        config()->set('queue.default', 'sync');
+        config()->set('mail.default', 'smtp');
+        config()->set('mail.mailers.smtp.host', '127.0.0.1');
+        config()->set('mail.mailers.smtp.port', 1);
+        config()->set('mail.mailers.smtp.timeout', 1);
+
+        Filament::setCurrentPanel(Filament::getPanel('dashboard'));
+        $this->actingAs($user);
+
+        Livewire::test(EmailVerificationPrompt::class)
+            ->callAction('resendNotification')
+            ->assertNotified('E-mail trenutno nije moguće poslati');
+    }
+
+    public function test_registration_succeeds_when_initial_verification_delivery_fails(): void
+    {
+        $this->seed(LocationSeeder::class);
+        $city = City::query()->firstOrFail();
+
+        config()->set('queue.default', 'sync');
+        config()->set('mail.default', 'smtp');
+        config()->set('mail.mailers.smtp.host', '127.0.0.1');
+        config()->set('mail.mailers.smtp.port', 1);
+        config()->set('mail.mailers.smtp.timeout', 1);
+
+        Filament::setCurrentPanel(Filament::getPanel('dashboard'));
+
+        Livewire::test(Register::class)
+            ->fillForm([
+                'name' => 'SMTP Test',
+                'profile_type' => ProfileType::Individual->value,
+                'service_type' => ServiceType::Photographer->value,
+                'primary_city_id' => $city->id,
+                'email' => 'smtp-test@example.com',
+                'password' => 'tajna-lozinka-123',
+                'passwordConfirmation' => 'tajna-lozinka-123',
+            ])
+            ->call('register')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('users', ['email' => 'smtp-test@example.com']);
     }
 
     public function test_photographer_can_request_password_reset_email(): void
