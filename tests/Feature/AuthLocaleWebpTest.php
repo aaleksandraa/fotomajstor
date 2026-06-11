@@ -134,6 +134,7 @@ class AuthLocaleWebpTest extends TestCase
                 'passwordConfirmation' => 'tajna-lozinka-123',
             ])
             ->call('register')
+            ->assertRedirect('/dashboard/email-verification/prompt')
             ->assertHasNoFormErrors();
 
         $user = User::where('email', 'marko@example.com')->firstOrFail();
@@ -149,6 +150,11 @@ class AuthLocaleWebpTest extends TestCase
         $this->assertTrue($profile->cities()->whereKey($city->id)->exists());
         $this->assertNull($user->email_verified_at);
         Notification::assertSentTo($user, VerifyEmail::class);
+
+        $this->get('/dashboard/email-verification/prompt')
+            ->assertOk()
+            ->assertSee('Registracija je uspješna.')
+            ->assertSee('Provjerite svoj e-mail i kliknite na link za potvrdu profila.');
     }
 
     public function test_unverified_photographer_is_sent_to_email_verification_prompt(): void
@@ -232,6 +238,7 @@ class AuthLocaleWebpTest extends TestCase
                 'passwordConfirmation' => 'tajna-lozinka-123',
             ])
             ->call('register')
+            ->assertRedirect('/dashboard/email-verification/prompt')
             ->assertHasNoFormErrors();
 
         $this->assertDatabaseHas('users', ['email' => 'smtp-test@example.com']);

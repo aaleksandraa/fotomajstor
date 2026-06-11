@@ -2,26 +2,27 @@
 
 namespace App\Providers;
 
-use App\Services\ImageService;
+use App\Http\Responses\DashboardRegistrationResponse;
 use App\Models\BlogPost;
 use App\Models\Category;
 use App\Models\CategoryAlias;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\Location;
+use App\Models\PhotographerBlogImage;
 use App\Models\PhotographerBlogPost;
 use App\Models\PhotographerProfile;
 use App\Models\PortfolioAlbum;
 use App\Models\PortfolioImage;
 use App\Models\PortfolioVideo;
-use App\Models\PhotographerBlogImage;
 use App\Observers\SeoContentObserver;
 use App\Support\FilamentWebpUpload;
 use Filament\Forms\Components\FileUpload;
+use Filament\Http\Responses\Auth\Contracts\RegistrationResponse;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\ServiceProvider;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class AppServiceProvider extends ServiceProvider
@@ -31,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(RegistrationResponse::class, DashboardRegistrationResponse::class);
     }
 
     /**
@@ -63,7 +64,7 @@ class AppServiceProvider extends ServiceProvider
                 ->visibility('public')
                 ->fetchFileInformation(false)
                 ->orientImagesFromExif(false)
-                ->getUploadedFileUsing(fn (FileUpload $component, string $file, string | array | null $storedFileNames) => FilamentWebpUpload::uploadedFileMeta($component, $file, $storedFileNames))
+                ->getUploadedFileUsing(fn (FileUpload $component, string $file, string|array|null $storedFileNames) => FilamentWebpUpload::uploadedFileMeta($component, $file, $storedFileNames))
                 ->saveUploadedFileUsing(fn (TemporaryUploadedFile $file) => FilamentWebpUpload::saveAsWebp($file, $directory, $maxWidth));
         });
     }
