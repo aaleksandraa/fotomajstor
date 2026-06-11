@@ -53,7 +53,12 @@ class EditProfile extends Page implements HasForms
         return $form->statePath('data')->schema([
             Section::make('Osnovni podaci')->schema([
                 Forms\Components\Select::make('profile_type')->label(__('Tip profila'))->options(ProfileType::options())->required(),
-                Forms\Components\Select::make('service_type')->label(__('Tip usluge'))->options(ServiceType::options())->required(),
+                Forms\Components\Select::make('service_type')
+                    ->label(__('Tip usluge'))
+                    ->helperText(__('Odaberite Fotograf, Videograf ili Fotograf & Videograf.'))
+                    ->options(ServiceType::options())
+                    ->required()
+                    ->native(false),
                 Forms\Components\TextInput::make('display_name')->label(__('Javni naziv'))->required()->maxLength(255),
                 Forms\Components\TextInput::make('first_name')->label(__('Ime')),
                 Forms\Components\TextInput::make('last_name')->label(__('Prezime')),

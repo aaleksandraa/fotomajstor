@@ -2,13 +2,16 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Dashboard\Pages\Auth\Login;
+use App\Filament\Dashboard\Pages\Auth\Register;
+use App\Http\Middleware\SetLocale;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use App\Filament\Dashboard\Pages\Auth\Login;
-use App\Filament\Dashboard\Pages\Auth\Register;
 use Filament\Pages;
+use Filament\Pages\Auth\PasswordReset\RequestPasswordReset;
+use Filament\Pages\Auth\PasswordReset\ResetPassword;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -20,7 +23,6 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use App\Http\Middleware\SetLocale;
 
 class DashboardPanelProvider extends PanelProvider
 {
@@ -37,6 +39,7 @@ class DashboardPanelProvider extends PanelProvider
             ->registration(Register::class)
             ->profile()
             ->passwordReset()
+            ->emailVerification()
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -50,8 +53,8 @@ class DashboardPanelProvider extends PanelProvider
                 scopes: [
                     Login::class,
                     Register::class,
-                    \Filament\Pages\Auth\PasswordReset\RequestPasswordReset::class,
-                    \Filament\Pages\Auth\PasswordReset\ResetPassword::class,
+                    RequestPasswordReset::class,
+                    ResetPassword::class,
                 ],
             )
             ->discoverResources(in: app_path('Filament/Dashboard/Resources'), for: 'App\\Filament\\Dashboard\\Resources')
@@ -62,7 +65,6 @@ class DashboardPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Dashboard/Widgets'), for: 'App\\Filament\\Dashboard\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

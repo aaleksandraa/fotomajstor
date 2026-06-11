@@ -9,6 +9,18 @@
 
             <p class="mb-4 text-sm text-gray-500">Kliknite na dan da ga označite kao zauzet (ili da ga ponovo oslobodite). Podrazumijevano ste dostupni svaki dan.</p>
 
+            <div class="mb-5 flex flex-wrap gap-2">
+                <x-filament::button color="danger" size="sm" wire:click="markMonthUnavailable">
+                    Označi cijeli mjesec kao zauzet
+                </x-filament::button>
+                <x-filament::button color="success" size="sm" wire:click="markMonthAvailable">
+                    Označi cijeli mjesec kao dostupan
+                </x-filament::button>
+                <x-filament::button color="gray" size="sm" wire:click="currentMonth">
+                    Trenutni mjesec
+                </x-filament::button>
+            </div>
+
             <div class="grid grid-cols-7 gap-1.5 text-center text-xs font-medium text-gray-400">
                 @foreach (['Pon','Uto','Sri','Čet','Pet','Sub','Ned'] as $d)
                     <div>{{ $d }}</div>
@@ -21,7 +33,7 @@
                 @foreach ($this->days as $day)
                     <button
                         @disabled($day['past'])
-                        @unless($day['past']) wire:click="toggle('{{ $day['date'] }}')" @endunless
+                        @unless($day['past']) wire:click="toggleDate('{{ $day['date'] }}')" @endunless
                         wire:key="day-{{ $day['date'] }}"
                         class="flex h-12 items-center justify-center rounded-lg text-sm font-medium transition
                             @if ($day['past']) cursor-not-allowed bg-gray-50 text-gray-300 line-through

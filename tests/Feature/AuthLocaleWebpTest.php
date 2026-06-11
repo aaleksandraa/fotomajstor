@@ -12,8 +12,15 @@ use App\Services\ImageService;
 use Database\Seeders\CategorySeeder;
 use Database\Seeders\LocationSeeder;
 use Filament\Facades\Filament;
+use Filament\Notifications\Auth\ResetPassword;
+use Filament\Notifications\Auth\VerifyEmail;
+use Filament\Pages\Auth\PasswordReset\RequestPasswordReset;
+use Filament\Pages\Auth\PasswordReset\ResetPassword as ResetPasswordPage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -107,6 +114,7 @@ class AuthLocaleWebpTest extends TestCase
 
     public function test_registration_creates_photographer_with_enriched_profile(): void
     {
+        Notification::fake();
         $this->seed(LocationSeeder::class);
 
         $city = City::query()->firstOrFail();
@@ -138,6 +146,44 @@ class AuthLocaleWebpTest extends TestCase
         $this->assertSame($city->country_id, $profile->primary_country_id);
         $this->assertFalse((bool) $profile->active, 'Novi profil mora biti neaktivan do odobrenja.');
         $this->assertTrue($profile->cities()->whereKey($city->id)->exists());
+        $this->assertNull($user->email_verified_at);
+        Notification::assertSentTo($user, VerifyEmail::class);
+    }
+
+    public function test_unverified_photographer_is_sent_to_email_verification_prompt(): void
+    {
+        $user = User::factory()->unverified()->create(['role' => UserRole::Photographer]);
+
+        $this->actingAs($user)
+            ->get('/dashboard')
+            ->assertRedirect('/dashboard/email-verification/prompt');
+    }
+
+    public function test_photographer_can_request_password_reset_email(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create(['role' => UserRole::Photographer]);
+        Filament::setCurrentPanel(Filament::getPanel('dashboard'));
+
+        Livewire::test(RequestPasswordReset::class)
+            ->fillForm(['email' => $user->email])
+            ->call('request')
+            ->assertHasNoFormErrors();
+
+        Notification::assertSentTo($user, ResetPassword::class);
+
+        $token = Password::broker()->createToken($user);
+
+        Livewire::test(ResetPasswordPage::class, ['email' => $user->email, 'token' => $token])
+            ->fillForm([
+                'password' => 'nova-sigurna-lozinka-123',
+                'passwordConfirmation' => 'nova-sigurna-lozinka-123',
+            ])
+            ->call('resetPassword')
+            ->assertHasNoFormErrors();
+
+        $this->assertTrue(Hash::check('nova-sigurna-lozinka-123', $user->fresh()->password));
     }
 
     public function test_individual_registration_uses_personal_name_as_display_name(): void
