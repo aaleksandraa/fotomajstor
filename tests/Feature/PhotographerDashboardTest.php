@@ -125,7 +125,13 @@ class PhotographerDashboardTest extends TestCase
             ->assertSee('js/availability-calendar.js', false)
             ->assertSee('wire:key="availability-calendar-stable"', false)
             ->assertSee('availability-open-date', false)
-            ->assertSee('availability-mark-month', false);
+            ->assertSee('availability-mark-month', false)
+            ->assertSee('bs-BA', false);
+
+        $this->withSession(['locale' => 'sr'])
+            ->get('/dashboard/availability')
+            ->assertOk()
+            ->assertSee('sr-Latn-RS', false);
 
         $this->assertTrue($profile->unavailableDates()->whereDate('date', $date)->exists());
         $this->assertTrue($profile->unavailableDates()->whereDate('date', $secondDate)->exists());

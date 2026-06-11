@@ -5,6 +5,24 @@
 @endassets
 
 <x-filament-panels::page>
+    @php
+        $calendarLocale = match (app()->getLocale()) {
+            'sr' => 'sr',
+            'sl' => 'sl',
+            'en' => 'en-gb',
+            default => app()->getLocale(),
+        };
+        $calendarIntlLocale = match (app()->getLocale()) {
+            'bs' => 'bs-BA',
+            'hr' => 'hr-HR',
+            'sr' => 'sr-Latn-RS',
+            'sl' => 'sl-SI',
+            'de' => 'de-DE',
+            'it' => 'it-IT',
+            default => 'en-GB',
+        };
+    @endphp
+
     <div class="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_340px]">
         <div
             wire:ignore
@@ -13,6 +31,8 @@
                 initialDate: @js($month . '-01'),
                 today: @js(today()->toDateString()),
                 busyDates: @js($this->busyDates),
+                calendarLocale: @js($calendarLocale),
+                intlLocale: @js($calendarIntlLocale),
             })"
             @availability-open-date.window="openDate($event.detail.date, $event.detail.busy)"
             @availability-mark-month.window="markVisibleMonth($event.detail.busy)"
@@ -151,9 +171,9 @@
         .availability-fullcalendar .fc-daygrid-day:not(.fc-day-past):hover { background: rgb(255 251 235); box-shadow: inset 0 0 0 2px rgb(245 158 11 / .45); z-index: 2; }
         .availability-fullcalendar .fc-daygrid-day-number { color: rgb(51 65 85); font-size: .8rem; font-weight: 800; padding: .65rem; }
         .availability-fullcalendar .fc-day-today .fc-daygrid-day-number { display: grid; height: 2rem; width: 2rem; place-items: center; border-radius: .75rem; background: rgb(245 158 11); color: white; margin: .3rem; padding: 0; }
-        .availability-fullcalendar .availability-free-day:not(.fc-day-past) { background: rgb(240 253 244 / .58); }
-        .availability-fullcalendar .availability-busy-day { background: rgb(255 241 242 / .86); }
-        .availability-fullcalendar .availability-busy-event { background: rgb(225 29 72); border: 0; border-radius: .55rem; box-shadow: 0 3px 8px rgb(225 29 72 / .18); font-size: .68rem; font-weight: 800; margin: 0 .35rem; padding: .15rem .35rem; }
+        .availability-fullcalendar .availability-free-day:not(.fc-day-past) { background: rgb(187 247 208 / .72); box-shadow: inset 0 0 0 1px rgb(22 101 52 / .08); }
+        .availability-fullcalendar .availability-busy-day { background: rgb(254 202 202 / .78); box-shadow: inset 0 0 0 1px rgb(153 27 27 / .08); }
+        .availability-fullcalendar .availability-busy-event { background: rgb(185 28 28); border: 0; border-radius: .55rem; box-shadow: 0 3px 8px rgb(185 28 28 / .22); font-size: .68rem; font-weight: 800; margin: 0 .35rem; padding: .15rem .35rem; }
         .availability-fullcalendar .fc-day-past { cursor: not-allowed; opacity: .42; }
         .availability-fullcalendar .fc-day-other { background: rgb(248 250 252 / .7); }
         .dark .availability-hero { background: radial-gradient(circle at 90% -20%, rgb(245 158 11 / .2), transparent 38%), linear-gradient(135deg, rgb(30 41 59 / .7), rgb(17 24 39)); }
@@ -166,8 +186,9 @@
         .dark .availability-fullcalendar .fc-col-header-cell { background: rgb(255 255 255 / .045); }
         .dark .availability-fullcalendar .fc-col-header-cell-cushion { color: rgb(148 163 184); }
         .dark .availability-fullcalendar .fc-daygrid-day-number { color: rgb(226 232 240); }
-        .dark .availability-fullcalendar .availability-free-day:not(.fc-day-past) { background: rgb(6 78 59 / .16); }
-        .dark .availability-fullcalendar .availability-busy-day { background: rgb(136 19 55 / .2); }
+        .dark .availability-fullcalendar .availability-free-day:not(.fc-day-past) { background: rgb(134 239 172 / .24); box-shadow: inset 0 0 0 1px rgb(134 239 172 / .12); }
+        .dark .availability-fullcalendar .availability-busy-day { background: rgb(252 165 165 / .24); box-shadow: inset 0 0 0 1px rgb(252 165 165 / .12); }
+        .dark .availability-fullcalendar .availability-busy-event { background: rgb(248 113 113); color: rgb(69 10 10); box-shadow: 0 3px 8px rgb(248 113 113 / .2); }
         .dark .availability-fullcalendar .fc-daygrid-day:not(.fc-day-past):hover { background: rgb(245 158 11 / .12); box-shadow: inset 0 0 0 2px rgb(245 158 11 / .55); }
         .dark .availability-fullcalendar .fc-day-other { background: rgb(255 255 255 / .018); }
         @media (max-width: 640px) {

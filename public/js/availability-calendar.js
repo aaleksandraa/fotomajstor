@@ -13,10 +13,11 @@ window.availabilityCalendar = (config) => ({
             initialView: 'dayGridMonth',
             initialDate: config.initialDate,
             firstDay: 1,
-            locale: 'bs',
+            locale: config.calendarLocale,
             height: 'auto',
             fixedWeekCount: false,
             showNonCurrentDates: true,
+            dayHeaderContent: (info) => this.formatWeekday(info.date),
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
@@ -33,6 +34,8 @@ window.availabilityCalendar = (config) => ({
             datesSet: (info) => {
                 const date = info.view.currentStart;
                 const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+                this.renderLocalizedTitle(date);
 
                 if (month !== this.visibleMonth) {
                     this.visibleMonth = month;
@@ -51,7 +54,7 @@ window.availabilityCalendar = (config) => ({
     openDate(date, busy) {
         this.selectedDate = date;
         this.selectedBusy = busy;
-        this.selectedLabel = new Intl.DateTimeFormat('bs-BA', {
+        this.selectedLabel = new Intl.DateTimeFormat(config.intlLocale, {
             weekday: 'long',
             day: 'numeric',
             month: 'long',
@@ -119,6 +122,23 @@ window.availabilityCalendar = (config) => ({
             element.classList.toggle('availability-busy-day', busy);
             element.classList.toggle('availability-free-day', !busy);
         });
+    },
+
+    renderLocalizedTitle(date) {
+        const title = this.$refs.calendar.querySelector('.fc-toolbar-title');
+
+        if (title) {
+            title.textContent = new Intl.DateTimeFormat(config.intlLocale, {
+                month: 'long',
+                year: 'numeric',
+            }).format(date);
+        }
+    },
+
+    formatWeekday(date) {
+        return new Intl.DateTimeFormat(config.intlLocale, {
+            weekday: 'long',
+        }).format(date);
     },
 
     localDate(date) {
