@@ -20,6 +20,10 @@ class PortfolioImage extends Model
                 $image->alt_text = $image->generateAltText();
             }
         });
+
+        static::deleted(function (PortfolioImage $image): void {
+            $image->album()->first()?->deleteIfEmpty();
+        });
     }
 
     public function generateAltText(): string

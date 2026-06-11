@@ -43,7 +43,23 @@ class PhotographerDashboardTest extends TestCase
         $this->get('/dashboard')
             ->assertOk()
             ->assertDontSee('Documentation')
-            ->assertDontSee('github.com/filamentphp/filament', false);
+            ->assertDontSee('github.com/filamentphp/filament', false)
+            ->assertSee('Pregledaj moj profil')
+            ->assertSee('Otvori web stranicu');
+    }
+
+    public function test_photographer_can_preview_own_inactive_profile_but_guest_cannot(): void
+    {
+        $profile = $this->photographer->photographerProfile;
+
+        $this->get(route('photographer.show', $profile))
+            ->assertOk()
+            ->assertSee('Pregled vašeg profila')
+            ->assertSee('<meta name="robots" content="noindex, follow">', false);
+
+        auth()->logout();
+
+        $this->get(route('photographer.show', $profile))->assertNotFound();
     }
 
     public function test_photographer_can_toggle_and_bulk_edit_availability(): void

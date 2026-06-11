@@ -13,7 +13,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 
 class PhotographerBlogPostResource extends Resource
 {
@@ -45,9 +44,7 @@ class PhotographerBlogPostResource extends Resource
                 ->label('Razlog odbijanja')
                 ->content(fn (?PhotographerBlogPost $record) => $record?->rejection_reason)
                 ->visible(fn (?PhotographerBlogPost $record) => $record?->status === PhotographerBlogStatus::Rejected),
-            Forms\Components\TextInput::make('title')->label('Naslov')->required()
-                ->live(onBlur: true)->afterStateUpdated(fn ($state, Forms\Set $set) => $set('slug', Str::slug($state))),
-            Forms\Components\TextInput::make('slug')->required(),
+            Forms\Components\TextInput::make('title')->label('Naslov')->required(),
             Forms\Components\Textarea::make('excerpt')->label('Kratak opis')->rows(2)->columnSpanFull(),
             Forms\Components\RichEditor::make('content')->label('Sadržaj')->required()->columnSpanFull(),
             Forms\Components\FileUpload::make('featured_image')->label('Glavna slika')->webp('blog', 1600),

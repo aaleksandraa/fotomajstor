@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\PhotographerProfile;
-use App\Models\PortfolioAlbum;
 use App\Support\Seo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -12,7 +11,9 @@ class PhotographerController extends Controller
 {
     public function show(Request $request, PhotographerProfile $photographer)
     {
-        abort_unless($photographer->active, 404);
+        $isOwnerPreview = ! $photographer->active && $request->user()?->is($photographer->user);
+
+        abort_unless($photographer->active || $isOwnerPreview, 404);
 
         $photographer->load([
             'socialLinks', 'categories', 'cities.country', 'primaryCity', 'primaryCountry',
@@ -20,7 +21,9 @@ class PhotographerController extends Controller
             'blogPosts' => fn ($q) => $q->published()->latest('published_at'),
         ]);
 
-        $this->recordView($request, $photographer);
+        if (! $isOwnerPreview) {
+            $this->recordView($request, $photographer);
+        }
 
         $start = Carbon::today();
         $end = $start->copy()->addWeeks(4);
@@ -40,7 +43,7 @@ class PhotographerController extends Controller
                 .$photographer->categories->pluck('name')->take(4)->implode(', ').'.',
             'canonical' => localized_route('photographer.show', $photographer->slug),
             'canonicalLocale' => config('locales.default'),
-            'robots' => app()->getLocale() === config('locales.default') ? 'index, follow' : 'noindex, follow',
+            'robots' => ! $isOwnerPreview && app()->getLocale() === config('locales.default') ? 'index, follow' : 'noindex, follow',
             'image' => media_url($photographer->cover_image ?? $photographer->profile_image),
             'type' => 'profile',
             'locales' => [config('locales.default')],
@@ -54,7 +57,7 @@ class PhotographerController extends Controller
             ],
         ];
 
-        return view('public.photographer', compact('photographer', 'calendar', 'seo'));
+        return view('public.photographer', compact('photographer', 'calendar', 'seo', 'isOwnerPreview'));
     }
 
     public function blogPost(PhotographerProfile $photographer, string $post)

@@ -4,15 +4,15 @@ namespace Tests\Feature;
 
 use App\Enums\BlogStatus;
 use App\Enums\UserRole;
+use App\Http\Controllers\SitemapController;
 use App\Models\BlogPost;
 use App\Models\Category;
 use App\Models\City;
-use App\Models\PhotographerProfile;
 use App\Models\Location;
+use App\Models\PhotographerProfile;
 use App\Models\PortfolioAlbum;
 use App\Models\PortfolioImage;
 use App\Models\User;
-use App\Http\Controllers\SitemapController;
 use App\Support\SitemapCache;
 use Database\Seeders\CategorySeeder;
 use Database\Seeders\LocationSeeder;
@@ -233,7 +233,8 @@ class SmokeTest extends TestCase
         $this->actingAs($user)->get('/dashboard')->assertOk();
         $this->actingAs($user)->get('/dashboard/edit-profile')->assertOk();
         $this->actingAs($user)->get('/dashboard/availability')->assertOk();
-        $this->actingAs($user)->get('/dashboard/portfolio-albums')->assertOk();
+        $this->actingAs($user)->get('/dashboard/portfolio-images')->assertOk();
+        $this->actingAs($user)->get('/dashboard/portfolio-albums')->assertNotFound();
         $this->actingAs($user)->get('/dashboard/photographer-blog-posts')->assertOk();
     }
 

@@ -9,6 +9,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages;
 use Filament\Pages\Auth\PasswordReset\RequestPasswordReset;
 use Filament\Pages\Auth\PasswordReset\ResetPassword;
@@ -65,6 +66,18 @@ class DashboardPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Dashboard/Widgets'), for: 'App\\Filament\\Dashboard\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
+            ])
+            ->navigationItems([
+                NavigationItem::make('Pregledaj moj profil')
+                    ->icon('heroicon-o-eye')
+                    ->url(fn (): string => route('photographer.show', auth()->user()->photographerProfile->slug))
+                    ->openUrlInNewTab()
+                    ->sort(90),
+                NavigationItem::make('Otvori web stranicu')
+                    ->icon('heroicon-o-globe-alt')
+                    ->url(fn (): string => route('home'))
+                    ->openUrlInNewTab()
+                    ->sort(91),
             ])
             ->middleware([
                 EncryptCookies::class,

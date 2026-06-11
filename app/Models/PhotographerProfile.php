@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PhotographerProfile extends Model
@@ -75,7 +76,7 @@ class PhotographerProfile extends Model
         return $this->hasMany(PortfolioAlbum::class);
     }
 
-    public function portfolioImages(): HasMany
+    public function portfolioImages(): HasManyThrough
     {
         return $this->hasManyThrough(PortfolioImage::class, PortfolioAlbum::class);
     }

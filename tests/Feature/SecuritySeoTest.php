@@ -6,9 +6,10 @@ use App\Enums\BlogStatus;
 use App\Enums\PhotographerBlogStatus;
 use App\Enums\UserRole;
 use App\Filament\Dashboard\Resources\PhotographerBlogPostResource\Pages\CreatePhotographerBlogPost as CreatePhotographerBlogPostPage;
-use App\Filament\Dashboard\Resources\PortfolioAlbumResource\Pages\CreatePortfolioAlbum as CreatePortfolioAlbumPage;
 use App\Models\BlogPost;
+use App\Models\Category;
 use App\Models\User;
+use App\Services\PortfolioService;
 use Database\Seeders\CategorySeeder;
 use Database\Seeders\LocationSeeder;
 use Filament\Facades\Filament;
@@ -40,32 +41,36 @@ class SecuritySeoTest extends TestCase
             ->assertDontSee('alert', false);
     }
 
-    public function test_dashboard_album_create_ignores_tampered_profile_id(): void
+    public function test_dashboard_portfolio_image_uses_automatic_category_album(): void
     {
-        [$owner, $other] = $this->makePhotographers();
+        [$owner] = $this->makePhotographers();
+        $this->seed(CategorySeeder::class);
+        $category = Category::firstOrFail();
 
         Filament::setCurrentPanel(Filament::getPanel('dashboard'));
 
         $this->actingAs($owner);
 
-        Livewire::test(CreatePortfolioAlbumPage::class)
-            ->fillForm([
-                'photographer_profile_id' => $other->photographerProfile->id,
-                'title' => 'Tamper Album',
-                'slug' => 'tamper-album',
-                'active' => true,
-            ])
-            ->call('create')
-            ->assertHasNoFormErrors();
+        $this->get('/dashboard/portfolio-images/create')
+            ->assertOk()
+            ->assertSee('Kategorija')
+            ->assertSee('Fotografija')
+            ->assertDontSee('Alt tekst')
+            ->assertDontSee('slug');
+
+        app(PortfolioService::class)->addImage($owner->photographerProfile, $category, 'portfolio/test.webp');
+        app(PortfolioService::class)->addImage($owner->photographerProfile, $category, 'portfolio/test-2.webp');
 
         $this->assertDatabaseHas('portfolio_albums', [
-            'title' => 'Tamper Album',
+            'category_id' => $category->id,
             'photographer_profile_id' => $owner->photographerProfile->id,
         ]);
-        $this->assertDatabaseMissing('portfolio_albums', [
-            'title' => 'Tamper Album',
-            'photographer_profile_id' => $other->photographerProfile->id,
-        ]);
+        $portfolioImage = $owner->photographerProfile->portfolioImages()->firstOrFail();
+        $this->assertSame($category->name.' - Owner Fotograf', $portfolioImage->alt_text);
+        $this->assertSame('portfolio/test.webp', $portfolioImage->image_path);
+        $this->assertSame(1, $owner->photographerProfile->albums()->count());
+        $this->assertSame(2, $owner->photographerProfile->portfolioImages()->count());
+        $this->assertTrue($owner->photographerProfile->categories()->whereKey($category->id)->exists());
     }
 
     public function test_dashboard_blog_create_ignores_tampered_profile_id(): void
@@ -80,7 +85,6 @@ class SecuritySeoTest extends TestCase
             ->fillForm([
                 'photographer_profile_id' => $other->photographerProfile->id,
                 'title' => 'Tamper Blog',
-                'slug' => 'tamper-blog',
                 'content' => '<p>Tekst</p>',
                 'status' => PhotographerBlogStatus::Draft->value,
             ])
@@ -89,6 +93,7 @@ class SecuritySeoTest extends TestCase
 
         $this->assertDatabaseHas('photographer_blog_posts', [
             'title' => 'Tamper Blog',
+            'slug' => 'tamper-blog',
             'photographer_profile_id' => $owner->photographerProfile->id,
         ]);
         $this->assertDatabaseMissing('photographer_blog_posts', [
