@@ -165,15 +165,34 @@ window.availabilityCalendar = (config) => ({
 
     paintDateElement(element, busy, isCurrentMonth) {
         const button = element.querySelector('[data-vc-date-btn]');
+        const dark = document.documentElement.classList.contains('dark');
 
         element.classList.toggle('availability-busy-day', isCurrentMonth && busy);
         element.classList.toggle('availability-free-day', isCurrentMonth && !busy);
 
         if (button && isCurrentMonth) {
+            button.dataset.availabilityState = busy ? 'busy' : 'free';
             button.dataset.availabilityStatus = busy ? config.busyLabel : config.freeLabel;
+            this.applyStatusColors(button, busy, dark);
         } else if (button) {
+            delete button.dataset.availabilityState;
             delete button.dataset.availabilityStatus;
+            ['background-color', 'border-color', 'color'].forEach((property) => button.style.removeProperty(property));
         }
+    },
+
+    applyStatusColors(button, busy, dark) {
+        const colors = dark
+            ? (busy
+                ? { background: 'rgb(127 29 29)', border: 'rgb(248 113 113)', text: 'rgb(254 226 226)' }
+                : { background: 'rgb(20 83 45)', border: 'rgb(74 222 128)', text: 'rgb(220 252 231)' })
+            : (busy
+                ? { background: 'rgb(254 202 202)', border: 'rgb(239 68 68)', text: 'rgb(127 29 29)' }
+                : { background: 'rgb(187 247 208)', border: 'rgb(34 197 94)', text: 'rgb(20 83 45)' });
+
+        button.style.setProperty('background-color', colors.background, 'important');
+        button.style.setProperty('border-color', colors.border, 'important');
+        button.style.setProperty('color', colors.text, 'important');
     },
 
     localizedLabels() {

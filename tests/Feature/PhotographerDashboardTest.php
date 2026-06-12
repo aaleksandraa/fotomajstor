@@ -131,6 +131,7 @@ class PhotographerDashboardTest extends TestCase
             ->assertSee('applyDateStatus(false)', false)
             ->assertSee('applyDateStatus(true)', false)
             ->assertSee('availability-status-confirmed', false)
+            ->assertSee('data-availability-state', false)
             ->assertSee('Slobodan dan')
             ->assertSee('Zauzet dan')
             ->assertSee('Slobodan termin')

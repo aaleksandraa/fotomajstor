@@ -210,10 +210,8 @@
         .availability-modern-calendar [data-vc-date-btn] { align-items: flex-start; border: 1px solid rgb(226 232 240); border-radius: .9rem; color: rgb(51 65 85); font-size: .78rem; font-weight: 800; justify-content: flex-start; min-height: 6rem; padding: .65rem; position: relative; transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
         .availability-modern-calendar [data-vc-date-btn]::after { bottom: .55rem; content: attr(data-availability-status); font-size: .62rem; font-weight: 800; left: .55rem; letter-spacing: .02em; position: absolute; text-transform: uppercase; }
         .availability-modern-calendar [data-vc-date]:not([data-vc-date-disabled]) [data-vc-date-btn]:hover { border-color: rgb(245 158 11); box-shadow: 0 8px 20px rgb(15 23 42 / .08), inset 0 0 0 1px rgb(245 158 11 / .25); transform: translateY(-1px); }
-        .availability-modern-calendar [data-vc-theme] .availability-free-day [data-vc-date-btn] { background: rgb(187 247 208 / .82) !important; border-color: rgb(74 222 128 / .65) !important; color: rgb(20 83 45) !important; }
-        .availability-modern-calendar [data-vc-theme] .availability-free-day [data-vc-date-btn]::after { color: rgb(21 128 61) !important; }
-        .availability-modern-calendar [data-vc-theme] .availability-busy-day [data-vc-date-btn] { background: rgb(254 202 202 / .9) !important; border-color: rgb(248 113 113 / .68) !important; color: rgb(127 29 29) !important; }
-        .availability-modern-calendar [data-vc-theme] .availability-busy-day [data-vc-date-btn]::after { color: rgb(185 28 28) !important; }
+        .availability-modern-calendar [data-availability-state="free"]::after { color: rgb(21 128 61) !important; }
+        .availability-modern-calendar [data-availability-state="busy"]::after { color: rgb(185 28 28) !important; }
         .availability-modern-calendar .availability-status-updated [data-vc-date-btn] { animation: availability-status-confirmed .65s ease-out; }
         .availability-modern-calendar [data-vc-date-today].availability-free-day [data-vc-date-btn] { box-shadow: inset 0 0 0 2px rgb(22 163 74) !important; }
         .availability-modern-calendar [data-vc-date-today].availability-busy-day [data-vc-date-btn] { box-shadow: inset 0 0 0 2px rgb(220 38 38) !important; }
@@ -237,10 +235,8 @@
         .dark .availability-modern-calendar [data-vc-arrow]:hover { background-color: rgb(255 255 255 / .1); border-color: rgb(255 255 255 / .2); }
         .dark .availability-modern-calendar [data-vc-week-day] { color: rgb(203 213 225); }
         .dark .availability-modern-calendar [data-vc-date-btn] { border-color: rgb(255 255 255 / .1); color: rgb(226 232 240); }
-        .dark .availability-modern-calendar [data-vc-theme] .availability-free-day [data-vc-date-btn] { background: rgb(134 239 172 / .24) !important; border-color: rgb(134 239 172 / .3) !important; color: rgb(220 252 231) !important; }
-        .dark .availability-modern-calendar [data-vc-theme] .availability-free-day [data-vc-date-btn]::after { color: rgb(134 239 172) !important; }
-        .dark .availability-modern-calendar [data-vc-theme] .availability-busy-day [data-vc-date-btn] { background: rgb(252 165 165 / .24) !important; border-color: rgb(252 165 165 / .3) !important; color: rgb(254 226 226) !important; }
-        .dark .availability-modern-calendar [data-vc-theme] .availability-busy-day [data-vc-date-btn]::after { color: rgb(252 165 165) !important; }
+        .dark .availability-modern-calendar [data-availability-state="free"]::after { color: rgb(134 239 172) !important; }
+        .dark .availability-modern-calendar [data-availability-state="busy"]::after { color: rgb(252 165 165) !important; }
         @keyframes availability-status-confirmed {
             0% { box-shadow: 0 0 0 0 rgb(245 158 11 / .55); transform: scale(.96); }
             55% { box-shadow: 0 0 0 7px rgb(245 158 11 / .13); transform: scale(1.015); }
