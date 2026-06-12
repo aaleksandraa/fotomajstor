@@ -38,7 +38,7 @@ class BlogSeeder extends Seeder
                     'content' => $this->content($title),
                     'featured_image' => placeholder_image('blog-'.Str::slug($title), 1600, 900),
                     'category_id' => $category?->id,
-                    'meta_title' => $title.' | FotoMreža',
+                    'meta_title' => $title.' | FotoMajstor',
                     'meta_description' => Str::limit('Saznajte više: '.$title.'. Praktični savjeti i preporuke za pronalazak pravog profesionalca.', 155),
                     'status' => BlogStatus::Published,
                     'published_at' => now()->subDays(($index + 1) * 3),

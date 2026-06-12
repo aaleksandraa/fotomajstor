@@ -33,7 +33,7 @@ class DashboardPanelProvider extends PanelProvider
         return $panel
             ->id('dashboard')
             ->path('dashboard')
-            ->brandName('FotoMreža')
+            ->brandName('FotoMajstor')
             ->brandLogo(fn () => view('filament.brand'))
             ->brandLogoHeight('2.25rem')
             ->font('Inter')

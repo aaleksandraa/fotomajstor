@@ -15,7 +15,7 @@ class PageController extends Controller
             ->get();
 
         $seo = [
-            'title' => 'Kategorije fotografisanja i snimanja | FotoMreža',
+            'title' => 'Kategorije fotografisanja i snimanja | FotoMajstor',
             'description' => 'Pregledajte sve kategorije — od vjenčanja i portreta do dron snimanja i komercijalne fotografije. Pronađite specijalistu za vaš projekat.',
             'jsonLd' => [Seo::breadcrumbs([
                 ['name' => __('Početna'), 'url' => localized_route('home')],
@@ -33,7 +33,7 @@ class PageController extends Controller
             ->get();
 
         $seo = [
-            'title' => 'Gradovi i mjesta | FotoMreža',
+            'title' => 'Gradovi i mjesta | FotoMajstor',
             'description' => 'Pronađite fotografe i videografe po gradovima u Bosni i Hercegovini, Srbiji, Hrvatskoj, Sloveniji i Crnoj Gori.',
             'jsonLd' => [Seo::breadcrumbs([
                 ['name' => __('Početna'), 'url' => localized_route('home')],

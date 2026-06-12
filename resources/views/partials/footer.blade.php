@@ -13,7 +13,7 @@
                 <span class="flex h-9 w-9 items-center justify-center rounded-full bg-ink-900 text-white">
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M6.5 7 8 5h8l1.5 2H20a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h2.5Z"/><circle cx="12" cy="12.5" r="3.2"/></svg>
                 </span>
-                <span class="font-serif text-lg text-ink-900">Foto<span class="text-ink-400">.</span>Mreža</span>
+                <span class="font-serif text-lg text-ink-900">Foto<span class="text-ink-400">Majstor</span></span>
             </a>
             <p class="mt-4 max-w-xs text-sm text-ink-500">{{ __('Regionalni katalog fotografa i videografa za BiH, Srbiju, Hrvatsku, Sloveniju i Crnu Goru.') }}</p>
         </div>
@@ -51,7 +51,7 @@
 
     <div class="border-t border-ink-100">
         <div class="container-px flex flex-col items-center justify-between gap-2 py-6 text-sm text-ink-400 md:flex-row">
-            <p>&copy; {{ date('Y') }} FotoMreža. {{ __('Sva prava zadržana.') }}</p>
+            <p>&copy; {{ date('Y') }} FotoMajstor. {{ __('Sva prava zadržana.') }}</p>
             <p>{{ __('Kontakt direktno sa fotografima — bez provizije.') }}</p>
         </div>
     </div>

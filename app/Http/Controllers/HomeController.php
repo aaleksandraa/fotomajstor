@@ -57,8 +57,8 @@ class HomeController extends Controller
         ];
 
         $seo = [
-            'title' => 'FotoMreža — fotografi i videografi za vaš događaj',
-            'description' => 'FotoMreža je regionalni katalog fotografa i videografa za BiH, Srbiju, Hrvatsku, Sloveniju i Crnu Goru. Pretražite po gradu, kategoriji i datumu.',
+            'title' => 'FotoMajstor — fotografi i videografi za vaš događaj',
+            'description' => 'FotoMajstor je regionalni katalog fotografa i videografa za BiH, Srbiju, Hrvatsku, Sloveniju i Crnu Goru. Pretražite po gradu, kategoriji i datumu.',
             'jsonLd' => [Seo::organization(), Seo::website(), Seo::faq($faqs)],
         ];
 

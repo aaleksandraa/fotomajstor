@@ -45,7 +45,7 @@ class CategorySeeder extends Seeder
                 'name' => $name,
                 'description' => $description,
                 'image' => placeholder_image('cat-'.$slug, 1200, 900),
-                'meta_title' => "Fotografi za {$name} | FotoMreža",
+                'meta_title' => "Fotografi za {$name} | FotoMajstor",
                 'meta_description' => "Pronađite najbolje fotografe i videografe za {$name}. Pregledajte portfolio, dostupnost i kontakt podatke.",
                 'intro_text' => "Pregledajte provjerene profesionalce specijalizovane za kategoriju {$name}.",
                 'active' => true,

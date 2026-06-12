@@ -12,7 +12,7 @@ class BlogController extends Controller
         $posts = BlogPost::published()->with('category')->latest('published_at')->paginate(9);
 
         $seo = [
-            'title' => 'Blog — savjeti i vodiči | FotoMreža',
+            'title' => 'Blog — savjeti i vodiči | FotoMajstor',
             'description' => 'Savjeti, vodiči i inspiracija za pronalazak pravog fotografa ili videografa za vaš događaj.',
             'canonical' => paginated_canonical(localized_route('blog.index')),
             'jsonLd' => [Seo::breadcrumbs([
@@ -36,7 +36,7 @@ class BlogController extends Controller
         $description = safe_public_text($post->meta_description ?? $post->excerpt ?? $post->content);
 
         $seo = [
-            'title' => $post->meta_title ?? "{$post->title} | FotoMreža",
+            'title' => seo_brand_title($post->meta_title ?? "{$post->title} | FotoMajstor"),
             'description' => $description,
             'image' => media_url($post->featured_image),
             'type' => 'article',

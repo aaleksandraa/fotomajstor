@@ -1,4 +1,4 @@
-# FotoMreža
+# FotoMajstor
 
 SEO-first katalog i portfolio direktorijum fotografa i videografa za BiH, Srbiju, Hrvatsku i regiju.
 
@@ -31,7 +31,7 @@ Aplikacija: `http://127.0.0.1:8000`
 
 ### Pristupni podaci (nakon seed-a)
 
-- **Admin:** `admin@fotomreza.example` / `password` → `/admin`
+- **Admin:** `admin@fotomajstor.example` / `password` → `/admin`
 - **Fotograf (primjer):** bilo koji `*@example.com` / `password` → `/dashboard`
 - Novi fotgrafi se registruju na `/dashboard/register`
 

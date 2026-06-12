@@ -55,7 +55,7 @@ class LocationSeeder extends Seeder
                 'name' => $row['name'],
                 'code' => $row['code'],
                 'default_language' => $row['default_language'],
-                'meta_title' => "Fotografi u državi {$row['name']} | FotoMreža",
+                'meta_title' => "Fotografi u državi {$row['name']} | FotoMajstor",
                 'meta_description' => "Pretražite fotografe i videografe u državi {$row['name']}. Po gradovima, kategorijama i dostupnosti.",
                 'intro_text' => "Pregledajte profesionalne fotografe i videografe širom države {$row['name']}.",
                 'active' => true,
@@ -69,7 +69,7 @@ class LocationSeeder extends Seeder
                     ['country_id' => $country->id, 'slug' => $slug],
                     [
                         'name' => $cityName,
-                        'meta_title' => "Fotografi u {$cityName} | FotoMreža",
+                        'meta_title' => "Fotografi u {$cityName} | FotoMajstor",
                         'meta_description' => "Pretražite fotografe i videografe u mjestu {$cityName}. Pogledajte profile, portfolio i kontakt podatke.",
                         'intro_text' => "Pronađite provjerene fotografe i videografe u mjestu {$cityName}.",
                         'active' => true,

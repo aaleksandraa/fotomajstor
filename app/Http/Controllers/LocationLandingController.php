@@ -36,7 +36,7 @@ class LocationLandingController extends Controller
             ->take(12)->get();
 
         $seo = [
-            'title' => app()->getLocale() === config('locales.default') && $country->meta_title ? seo_brand_title($country->meta_title) : seo_brand_title(__('Fotografi i videografi u :location | Pronađi Fotografa', ['location' => $country->name])),
+            'title' => app()->getLocale() === config('locales.default') && $country->meta_title ? seo_brand_title($country->meta_title) : seo_brand_title(__('Fotografi i videografi u :location | FotoMajstor', ['location' => $country->name])),
             'description' => app()->getLocale() === config('locales.default') && $country->meta_description ? $country->meta_description : __('Pronađite profesionalne fotografe i videografe u :location. Pregledajte profile, portfolio, dostupnost i direktne kontakte.', ['location' => $country->name]),
             'canonical' => paginated_canonical(localized_route('landing.country', $country->slug)),
             'robots' => $photographers->total() > 0 ? 'index, follow' : 'noindex, follow',
@@ -78,7 +78,7 @@ class LocationLandingController extends Controller
         ];
 
         $seo = [
-            'title' => app()->getLocale() === config('locales.default') && $city->meta_title ? seo_brand_title($city->meta_title) : seo_brand_title(__('Fotografi u :city, :country | Pronađi Fotografa', ['city' => $city->name, 'country' => $country->name])),
+            'title' => app()->getLocale() === config('locales.default') && $city->meta_title ? seo_brand_title($city->meta_title) : seo_brand_title(__('Fotografi u :city, :country | FotoMajstor', ['city' => $city->name, 'country' => $country->name])),
             'description' => app()->getLocale() === config('locales.default') && $city->meta_description ? $city->meta_description : __('Pretražite fotografe i videografe u mjestu :city (:country). Pogledajte profile, portfolio i kontakt podatke.', ['city' => $city->name, 'country' => $country->name]),
             'canonical' => paginated_canonical(localized_route('landing.country.city', [$country->slug, $city->slug])),
             'robots' => $photographers->total() > 0 ? 'index, follow' : 'noindex, follow',
@@ -99,7 +99,7 @@ class LocationLandingController extends Controller
             'photographers' => $photographers,
             'relatedTitle' => __('Kategorije u ovom gradu'),
             'relatedLinks' => $topCategories->map(fn ($c) => ['label' => "{$c->name} — {$city->name}", 'url' => localized_route('landing.category.city', [$country->slug, $c->slug, $city->slug])]),
-            'seoText' => $city->intro_text ?: __('FotoMreža povezuje vas sa fotografima i videografima koji rade u mjestu :city i okolnim lokacijama.', ['city' => $city->name]),
+            'seoText' => $city->intro_text ?: __('FotoMajstor povezuje vas sa fotografima i videografima koji rade u mjestu :city i okolnim lokacijama.', ['city' => $city->name]),
             'faqs' => $faqs,
             'seo' => $seo,
         ]);
@@ -128,7 +128,7 @@ class LocationLandingController extends Controller
 
         $singular = \Illuminate\Support\Str::lower($category->name);
         $seo = [
-            'title' => seo_brand_title(__('Fotograf za :category u :location | Pronađi Fotografa', ['category' => $singular, 'location' => $country->name])),
+            'title' => seo_brand_title(__('Fotograf za :category u :location | FotoMajstor', ['category' => $singular, 'location' => $country->name])),
             'description' => __('Pronađite fotografe i videografe za :category u :location. Pregledajte profile, portfolio, dostupnost i kontakt podatke.', ['category' => $singular, 'location' => $country->name]),
             'canonical' => paginated_canonical(localized_route('landing.category.country', [$country->slug, $category->slug])),
             'robots' => $photographers->total() > 0 ? 'index, follow' : 'noindex, follow',
@@ -177,7 +177,7 @@ class LocationLandingController extends Controller
         ];
 
         $seo = [
-            'title' => seo_brand_title(__('Fotograf za :category u :location | Pronađi Fotografa', ['category' => $singular, 'location' => $city->name])),
+            'title' => seo_brand_title(__('Fotograf za :category u :location | FotoMajstor', ['category' => $singular, 'location' => $city->name])),
             'description' => __('Pronađite fotografe i videografe za :category u :location. Pregledajte profile, portfolio, dostupnost i kontakt podatke.', ['category' => $singular, 'location' => $city->name]),
             'image' => media_url($category->image),
             'canonical' => paginated_canonical(localized_route('landing.category.city', [$country->slug, $category->slug, $city->slug])),
@@ -225,7 +225,7 @@ class LocationLandingController extends Controller
 
         $serviceTitle = $serviceType->searchTitle();
         $seo = [
-            'title' => seo_brand_title(__(':service u :location | Pronađi Fotografa', ['service' => $serviceTitle, 'location' => $city->name])),
+            'title' => seo_brand_title(__(':service u :location | FotoMajstor', ['service' => $serviceTitle, 'location' => $city->name])),
             'description' => __('Pronađite uslugu :service u mjestu :city, :country. Pogledajte portfolio, dostupnost i direktne kontakt podatke.', ['service' => $serviceTitle, 'city' => $city->name, 'country' => $country->name]),
             'canonical' => paginated_canonical(localized_route('landing.service.city', [$country->slug, $serviceType->seoSlug(), $city->slug])),
             'robots' => $photographers->total() > 0 ? 'index, follow' : 'noindex, follow',

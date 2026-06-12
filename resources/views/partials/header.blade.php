@@ -21,7 +21,7 @@
                     <circle cx="12" cy="12.5" r="3.2"/>
                 </svg>
             </span>
-            <span class="font-serif text-xl text-ink-900">Foto<span class="text-ink-400">.</span>Mreža</span>
+            <span class="font-serif text-xl text-ink-900">Foto<span class="text-ink-400">Majstor</span></span>
         </a>
 
         <nav class="hidden items-center gap-8 md:flex">

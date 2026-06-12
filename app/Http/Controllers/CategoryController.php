@@ -35,7 +35,7 @@ class CategoryController extends Controller
         $seo = [
             'title' => app()->getLocale() === config('locales.default') && $category->meta_title
                 ? seo_brand_title($category->meta_title)
-                : seo_brand_title(__('Fotografi za :name | Pronađi Fotografa', ['name' => $category->name])),
+                : seo_brand_title(__('Fotografi za :name | FotoMajstor', ['name' => $category->name])),
             'description' => app()->getLocale() === config('locales.default') && $category->meta_description
                 ? $category->meta_description
                 : __('Pronađite fotografe i videografe za :name. Pogledajte portfolio, dostupnost i kontakt podatke.', ['name' => $category->name]),

@@ -32,7 +32,7 @@ class CityController extends Controller
             ->take(12)->get();
 
         $seo = [
-            'title' => __('Fotografi u :name | FotoMreža', ['name' => $city->name]),
+            'title' => __('Fotografi u :name | FotoMajstor', ['name' => $city->name]),
             'description' => __('Pretražite fotografe i videografe u mjestu :name. Pogledajte profile, portfolio i kontakt podatke.', ['name' => $city->name]),
             'jsonLd' => [
                 Seo::breadcrumbs([

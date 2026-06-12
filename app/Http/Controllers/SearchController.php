@@ -39,7 +39,7 @@ class SearchController extends Controller
         $cities = City::active()->ordered()->get();
 
         $seo = [
-            'title' => 'Fotografi i videografi | FotoMreža',
+            'title' => 'Fotografi i videografi | FotoMajstor',
             'description' => 'Pretražite fotografe i videografe po državi, gradu, kategoriji i datumu dostupnosti. Pogledajte portfolio i kontaktirajte direktno.',
             'canonical' => localized_route('search'),
             'robots' => $request->query() ? 'noindex, follow' : 'index, follow',

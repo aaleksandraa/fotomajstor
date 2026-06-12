@@ -1,4 +1,4 @@
-# PRD / Specifikacija projekta: Pronađi Fotografa
+# PRD / Specifikacija projekta: FotoMajstor
 
 **Verzija:** 1.0  
 **Tip dokumenta:** Product Requirements Document + tehničko-funkcionalna specifikacija  
@@ -12,7 +12,7 @@
 
 ## 1. Kratak opis projekta
 
-**Pronađi Fotografa** je moderna SEO-first web platforma za pronalazak fotografa i videografa prema:
+**FotoMajstor** je moderna SEO-first web platforma za pronalazak fotografa i videografa prema:
 
 - državi
 - gradu/mjestu/opštini
@@ -862,23 +862,23 @@ Primjer:
 
 Kategorija:
 
-`Fotografi za {category} | Pronađi Fotografa`
+`Fotografi za {category} | FotoMajstor`
 
 Grad:
 
-`Fotografi u {city} | Pronađi Fotografa`
+`Fotografi u {city} | FotoMajstor`
 
 Kategorija + grad:
 
-`Fotograf za {category} u {city} | Pronađi Fotografa`
+`Fotograf za {category} u {city} | FotoMajstor`
 
 Država + grad:
 
-`Fotografi u {city}, {country} | Pronađi Fotografa`
+`Fotografi u {city}, {country} | FotoMajstor`
 
 Blog:
 
-`{blog_title} | Pronađi Fotografa`
+`{blog_title} | FotoMajstor`
 
 Fotografov blog:
 

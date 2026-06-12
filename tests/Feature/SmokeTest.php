@@ -99,6 +99,38 @@ class SmokeTest extends TestCase
         ];
     }
 
+    public function test_fotomajstor_brand_is_consistent_in_public_seo_and_locales(): void
+    {
+        $this->assertSame('FotoMajstor', config('app.name'));
+        $this->assertSame('FotoMajstor', config('mail.from.name'));
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('<title>FotoMajstor — fotografi i videografi za vaš događaj</title>', false)
+            ->assertSee('<meta property="og:site_name" content="FotoMajstor">', false)
+            ->assertSee('"@type":"Organization","name":"FotoMajstor"', false)
+            ->assertSee('"@type":"WebSite","name":"FotoMajstor"', false)
+            ->assertDontSee('FotoMreža')
+            ->assertDontSee('Pronađi Fotografa');
+
+        $this->get('/en')
+            ->assertOk()
+            ->assertSee('<title>FotoMajstor — photographers and videographers for your event</title>', false)
+            ->assertSee('<meta property="og:site_name" content="FotoMajstor">', false)
+            ->assertDontSee('Find a Photographer');
+    }
+
+    public function test_legacy_saved_seo_title_is_rendered_with_fotomajstor_brand(): void
+    {
+        $category = Category::firstOrFail();
+        $category->update(['meta_title' => 'Fotografi za događaje | FotoMreža']);
+
+        $this->get(route('category.show', $category->slug))
+            ->assertOk()
+            ->assertSee('<title>Fotografi za događaje | FotoMajstor</title>', false)
+            ->assertDontSee('FotoMreža');
+    }
+
     public function test_search_filters_by_category_and_date(): void
     {
         $this->get('/fotografi?category=svadbe')->assertOk();

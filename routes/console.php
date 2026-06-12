@@ -60,8 +60,8 @@ Artisan::command('mail:diagnose {--send= : Optional recipient for a direct SMTP 
     }
 
     try {
-        Mail::raw('FotoMreža SMTP dijagnostička poruka.', function ($message) use ($recipient): void {
-            $message->to($recipient)->subject('FotoMreža SMTP test');
+        Mail::raw('FotoMajstor SMTP dijagnostička poruka.', function ($message) use ($recipient): void {
+            $message->to($recipient)->subject('FotoMajstor SMTP test');
         });
     } catch (Throwable $exception) {
         $this->error('SMTP test failed: '.$exception->getMessage());

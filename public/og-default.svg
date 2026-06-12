@@ -3,6 +3,6 @@
   <rect x="80" y="80" width="1040" height="470" rx="44" fill="#171717"/>
   <path d="M225 250h120l42-65h130l42 65h120c38 0 68 30 68 68v110c0 38-30 68-68 68H225c-38 0-68-30-68-68V318c0-38 30-68 68-68Z" fill="none" stroke="#fff" stroke-width="22"/>
   <circle cx="452" cy="373" r="82" fill="none" stroke="#fff" stroke-width="22"/>
-  <text x="800" y="350" fill="#fff" font-family="Georgia,serif" font-size="62" text-anchor="middle">FotoMreža</text>
+  <text x="800" y="350" fill="#fff" font-family="Georgia,serif" font-size="62" text-anchor="middle">FotoMajstor</text>
   <text x="800" y="410" fill="#c9c2b5" font-family="Arial,sans-serif" font-size="25" text-anchor="middle">fotografi i videografi u vašem gradu</text>
 </svg>

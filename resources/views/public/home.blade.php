@@ -9,7 +9,7 @@
         </div>
 
         <div class="container-px relative z-10 pt-16 pb-10 text-center sm:pt-24">
-            <p class="eyebrow">FotoMreža</p>
+            <p class="eyebrow">FotoMajstor</p>
             <h1 class="mx-auto mt-3 max-w-4xl break-words font-serif text-3xl leading-[1.08] text-ink-900 sm:text-5xl lg:text-6xl">
                 {{ __('Pronađite fotografa ili videografa za vaš događaj') }}
             </h1>
@@ -117,7 +117,7 @@
             <div class="prose max-w-none">
                 <h2 class="font-serif text-3xl text-ink-900">{{ __('Pronađite pravog fotografa u svom gradu') }}</h2>
                 <p class="mt-4 text-ink-600">
-                    {{ __('FotoMreža je profesionalni katalog fotografa i videografa za Bosnu i Hercegovinu, Srbiju, Hrvatsku, Sloveniju i Crnu Goru. Pretražite po lokaciji, kategoriji i datumu i kontaktirajte profesionalca direktno.') }}
+                    {{ __('FotoMajstor je profesionalni katalog fotografa i videografa za Bosnu i Hercegovinu, Srbiju, Hrvatsku, Sloveniju i Crnu Goru. Pretražite po lokaciji, kategoriji i datumu i kontaktirajte profesionalca direktno.') }}
                 </p>
                 <p class="mt-4 text-ink-600">
                     {{ __('Bez provizija, bez posrednika i bez skrivenih troškova. Svaki profil sadrži portfolio, kalendar dostupnosti i kontakt podatke.') }}
