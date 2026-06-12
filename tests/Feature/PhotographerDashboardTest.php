@@ -133,6 +133,9 @@ class PhotographerDashboardTest extends TestCase
             ->assertSee('availability-status-confirmed', false)
             ->assertSee('Slobodan dan')
             ->assertSee('Zauzet dan')
+            ->assertSee('Slobodan termin')
+            ->assertSee('Zauzet termin')
+            ->assertDontSee('Današnji datum')
             ->assertSee('bs-BA', false);
 
         $this->assertFileExists(public_path('vendor/vanilla-calendar-pro/index.mjs'));
