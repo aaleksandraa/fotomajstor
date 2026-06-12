@@ -33,11 +33,6 @@ window.availabilityCalendar = (config) => ({
             enableMonthChangeOnDayClick: false,
             selectedTheme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
             themeAttrDetect: false,
-            onClickDate: (calendar, event) => {
-                const date = event.target.closest('[data-vc-date]')?.dataset.vcDate;
-
-                if (date) this.openDate(date, this.busyDates.includes(date));
-            },
             onClickArrow: (calendar) => {
                 window.setTimeout(() => this.syncVisibleMonth(calendar), 0);
             },
@@ -47,6 +42,16 @@ window.availabilityCalendar = (config) => ({
 
         this.calendar.init();
         this.decorateDays();
+    },
+
+    handleCalendarClick(event) {
+        const dateElement = event.target.closest('[data-vc-date]');
+        const date = dateElement?.dataset.vcDate;
+        const isDisabled = dateElement?.hasAttribute('data-vc-date-disabled');
+
+        if (date && !isDisabled) {
+            this.openDate(date, this.busyDates.includes(date));
+        }
     },
 
     openDate(date, busy) {
@@ -61,19 +66,25 @@ window.availabilityCalendar = (config) => ({
         this.modalOpen = true;
     },
 
-    async applyDateStatus() {
+    async applyDateStatus(busy) {
         if (this.saving || !this.selectedDate) return;
 
-        const nextBusy = !this.selectedBusy;
+        if (busy === this.selectedBusy) {
+            this.modalOpen = false;
+
+            return;
+        }
+
         this.saving = true;
 
         try {
-            await this.$wire.setDateStatus(this.selectedDate, nextBusy);
+            await this.$wire.setDateStatus(this.selectedDate, busy);
 
-            this.busyDates = nextBusy
+            this.busyDates = busy
                 ? [...new Set([...this.busyDates, this.selectedDate])].sort()
                 : this.busyDates.filter((date) => date !== this.selectedDate);
 
+            this.selectedBusy = busy;
             this.modalOpen = false;
             this.decorateDays();
         } finally {

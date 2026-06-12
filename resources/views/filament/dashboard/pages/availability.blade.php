@@ -41,7 +41,7 @@
             </div>
 
             <div class="p-3 sm:p-6 lg:p-7">
-                <div x-ref="calendar" class="availability-modern-calendar"></div>
+                <div x-ref="calendar" @click="handleCalendarClick($event)" class="availability-modern-calendar"></div>
             </div>
 
             <div class="availability-legend grid gap-2 border-t border-gray-100 px-4 py-4 text-xs font-medium text-gray-600 dark:border-white/10 dark:text-gray-300 sm:flex sm:flex-wrap sm:items-center sm:gap-5 sm:px-7">
@@ -81,16 +81,47 @@
                         </button>
                     </div>
 
-                    <p class="mt-5 rounded-2xl bg-gray-50 p-4 text-sm leading-6 text-gray-600 dark:bg-white/5 dark:text-gray-300" x-text="selectedBusy
-                        ? 'Ovaj datum je trenutno označen kao zauzet. Možete ga ponovo učiniti dostupnim posjetiocima.'
-                        : 'Ovaj datum je trenutno slobodan. Označite ga kao zauzet ako već imate rezervaciju.'"></p>
+                    <p class="mt-5 text-sm leading-6 text-gray-600 dark:text-gray-300">Odaberite status termina. Status možete ponovo promijeniti u bilo kojem trenutku.</p>
 
-                    <div class="mt-6 grid gap-2 sm:grid-cols-2">
-                        <button type="button" :disabled="saving" @click="modalOpen = false" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5">Odustani</button>
-                        <button type="button" :disabled="saving" @click="applyDateStatus()" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition disabled:cursor-wait disabled:opacity-60" :class="selectedBusy ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-rose-600 hover:bg-rose-500'">
-                            <svg x-show="saving" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle class="opacity-30" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-linecap="round" stroke-width="3"/></svg>
-                            <span x-text="saving ? 'Spremanje...' : (selectedBusy ? 'Označi kao dostupno' : 'Označi kao zauzeto')"></span>
+                    <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                        <button
+                            type="button"
+                            :disabled="saving"
+                            @click="applyDateStatus(false)"
+                            class="availability-status-choice availability-status-choice-free"
+                            :class="{ 'availability-status-choice-active': ! selectedBusy }"
+                        >
+                            <span class="availability-status-choice-icon">
+                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"/></svg>
+                            </span>
+                            <span>
+                                <strong>Slobodan dan</strong>
+                                <small x-text="! selectedBusy ? 'Trenutni status' : 'Označi dostupnim'"></small>
+                            </span>
                         </button>
+                        <button
+                            type="button"
+                            :disabled="saving"
+                            @click="applyDateStatus(true)"
+                            class="availability-status-choice availability-status-choice-busy"
+                            :class="{ 'availability-status-choice-active': selectedBusy }"
+                        >
+                            <span class="availability-status-choice-icon">
+                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6 6 18"/></svg>
+                            </span>
+                            <span>
+                                <strong>Zauzet dan</strong>
+                                <small x-text="selectedBusy ? 'Trenutni status' : 'Označi zauzetim'"></small>
+                            </span>
+                        </button>
+                    </div>
+
+                    <div class="mt-5 flex items-center justify-between gap-3 border-t border-gray-100 pt-4 dark:border-white/10">
+                        <span class="inline-flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                            <svg x-show="saving" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle class="opacity-30" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-linecap="round" stroke-width="3"/></svg>
+                            <span x-text="saving ? 'Spremanje promjene...' : 'Promjena se odmah objavljuje'"></span>
+                        </span>
+                        <button type="button" :disabled="saving" @click="modalOpen = false" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5">Zatvori</button>
                     </div>
                 </div>
             </div>
@@ -155,6 +186,17 @@
         .availability-stat-free { background: linear-gradient(145deg, rgb(236 253 245), white 75%); }
         .availability-stat-busy { background: linear-gradient(145deg, rgb(255 241 242), white 75%); }
         .availability-stat-icon { position: absolute; right: 1rem; top: 1rem; display: grid; height: 1.75rem; width: 1.75rem; place-items: center; border-radius: .75rem; background: rgb(255 255 255 / .8); box-shadow: 0 1px 3px rgb(15 23 42 / .08); }
+        .availability-status-choice { display: flex; min-height: 5.5rem; align-items: center; gap: .75rem; border: 1px solid rgb(229 231 235); border-radius: 1rem; padding: .85rem; text-align: left; transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+        .availability-status-choice:hover { transform: translateY(-1px); }
+        .availability-status-choice:disabled { cursor: wait; opacity: .6; transform: none; }
+        .availability-status-choice-icon { display: grid; height: 2.5rem; width: 2.5rem; flex-shrink: 0; place-items: center; border-radius: .8rem; }
+        .availability-status-choice strong, .availability-status-choice small { display: block; }
+        .availability-status-choice strong { color: rgb(17 24 39); font-size: .875rem; }
+        .availability-status-choice small { margin-top: .2rem; color: rgb(107 114 128); font-size: .7rem; font-weight: 600; }
+        .availability-status-choice-free .availability-status-choice-icon { background: rgb(220 252 231); color: rgb(22 163 74); }
+        .availability-status-choice-free:hover, .availability-status-choice-free.availability-status-choice-active { border-color: rgb(74 222 128); background: rgb(240 253 244); box-shadow: 0 0 0 3px rgb(34 197 94 / .1); }
+        .availability-status-choice-busy .availability-status-choice-icon { background: rgb(254 226 226); color: rgb(220 38 38); }
+        .availability-status-choice-busy:hover, .availability-status-choice-busy.availability-status-choice-active { border-color: rgb(248 113 113); background: rgb(254 242 242); box-shadow: 0 0 0 3px rgb(239 68 68 / .1); }
         .availability-modern-calendar [data-vc="calendar"] { min-width: 0; padding: 0; width: 100%; }
         .availability-modern-calendar [data-vc="header"] { margin-bottom: 1.25rem; }
         .availability-modern-calendar [data-vc-header="content"] { gap: .15rem; }
@@ -181,6 +223,13 @@
         .dark .availability-stat-free { background: linear-gradient(145deg, rgb(6 78 59 / .28), rgb(17 24 39) 75%); }
         .dark .availability-stat-busy { background: linear-gradient(145deg, rgb(136 19 55 / .25), rgb(17 24 39) 75%); }
         .dark .availability-stat-icon { background: rgb(255 255 255 / .08); box-shadow: none; }
+        .dark .availability-status-choice { border-color: rgb(255 255 255 / .1); }
+        .dark .availability-status-choice strong { color: white; }
+        .dark .availability-status-choice small { color: rgb(156 163 175); }
+        .dark .availability-status-choice-free .availability-status-choice-icon { background: rgb(34 197 94 / .14); color: rgb(134 239 172); }
+        .dark .availability-status-choice-free:hover, .dark .availability-status-choice-free.availability-status-choice-active { border-color: rgb(74 222 128 / .55); background: rgb(34 197 94 / .1); }
+        .dark .availability-status-choice-busy .availability-status-choice-icon { background: rgb(239 68 68 / .14); color: rgb(252 165 165); }
+        .dark .availability-status-choice-busy:hover, .dark .availability-status-choice-busy.availability-status-choice-active { border-color: rgb(248 113 113 / .55); background: rgb(239 68 68 / .1); }
         .dark .availability-modern-calendar [data-vc="calendar"] { background: transparent; }
         .dark .availability-modern-calendar [data-vc="month"], .dark .availability-modern-calendar [data-vc="year"] { color: white; }
         .dark .availability-modern-calendar [data-vc-arrow] { background-color: rgb(255 255 255 / .05); border-color: rgb(255 255 255 / .12); }

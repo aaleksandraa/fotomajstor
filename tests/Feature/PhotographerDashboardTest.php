@@ -113,7 +113,7 @@ class PhotographerDashboardTest extends TestCase
         Livewire::test(Availability::class)
             ->assertSee('Upravljajte zauzetim terminima')
             ->assertSee('Naredni zauzeti termini')
-            ->assertSee('Označi kao zauzeto')
+            ->assertSee('Zauzet dan')
             ->call('setDateStatus', $date, true)
             ->call('setDateStatus', $secondDate, true)
             ->call('setDateStatus', $date, false)
@@ -127,6 +127,11 @@ class PhotographerDashboardTest extends TestCase
             ->assertSee('wire:key="availability-calendar-stable"', false)
             ->assertSee('availability-open-date', false)
             ->assertSee('availability-mark-month', false)
+            ->assertSee('handleCalendarClick($event)', false)
+            ->assertSee('applyDateStatus(false)', false)
+            ->assertSee('applyDateStatus(true)', false)
+            ->assertSee('Slobodan dan')
+            ->assertSee('Zauzet dan')
             ->assertSee('bs-BA', false);
 
         $this->assertFileExists(public_path('vendor/vanilla-calendar-pro/index.mjs'));
