@@ -127,6 +127,7 @@ class EditProfile extends Page implements HasForms
         $this->profile->countries()->sync(
             City::whereIn('id', $cities)->pluck('country_id')->unique()->all()
         );
+        auth()->user()->publishVerifiedPhotographerProfile();
 
         Notification::make()->title('Profil je sačuvan')->success()->send();
     }

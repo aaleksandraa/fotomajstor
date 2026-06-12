@@ -11,6 +11,8 @@ class DashboardEmailVerificationResponse implements EmailVerificationResponse
 {
     public function toResponse($request): RedirectResponse|Redirector
     {
+        auth()->user()?->publishVerifiedPhotographerProfile();
+
         return redirect()
             ->to(EditProfile::getUrl(panel: 'dashboard'))
             ->with('email_verified', true);

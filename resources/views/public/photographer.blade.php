@@ -1,11 +1,5 @@
 @extends('layouts.app')
 
-@if ($isOwnerPreview ?? false)
-    <div class="border-b border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm font-medium text-amber-900">
-        Pregled vašeg profila. Profil još nije javno objavljen i vidljiv je samo vama.
-    </div>
-@endif
-
 @php
     $allImages = $photographer->albums
         ->flatMap(fn ($a) => $a->images->map(fn ($img) => ['img' => $img, 'cat' => $a->category?->name, 'cat_slug' => $a->category?->slug]))

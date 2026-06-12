@@ -46,9 +46,6 @@ class UserObserver
             return;
         }
 
-        $user->photographerProfile()->update([
-            'active' => true,
-            'verified' => true,
-        ]);
+        $user->publishVerifiedPhotographerProfile();
     }
 }

@@ -60,4 +60,16 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     {
         return $this->hasOne(PhotographerProfile::class);
     }
+
+    public function publishVerifiedPhotographerProfile(): void
+    {
+        if ($this->role !== UserRole::Photographer || ! $this->hasVerifiedEmail()) {
+            return;
+        }
+
+        $this->photographerProfile()->update([
+            'active' => true,
+            'verified' => true,
+        ]);
+    }
 }

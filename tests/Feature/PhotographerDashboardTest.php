@@ -11,6 +11,7 @@ use App\Filament\Dashboard\Resources\PortfolioAlbumResource\Pages\EditPortfolioA
 use App\Filament\Dashboard\Resources\PortfolioAlbumResource\Pages\ListPortfolioAlbums;
 use App\Filament\Dashboard\Resources\PortfolioAlbumResource\RelationManagers\ImagesRelationManager;
 use App\Filament\Dashboard\Resources\PortfolioAlbumResource\RelationManagers\VideosRelationManager;
+use App\Http\Responses\DashboardEmailVerificationResponse;
 use App\Http\Responses\DashboardLoginResponse;
 use App\Models\Category;
 use App\Models\PortfolioVideo;
@@ -65,11 +66,15 @@ class PhotographerDashboardTest extends TestCase
 
         $this->get(route('photographer.show', $profile))
             ->assertOk()
-            ->assertSee('<meta name="robots" content="index, follow">', false);
+            ->assertSee('<meta name="robots" content="index, follow">', false)
+            ->assertDontSee('Pregled vašeg profila')
+            ->assertDontSee('Profil još nije javno objavljen');
 
         auth()->logout();
 
-        $this->get(route('photographer.show', $profile))->assertOk();
+        $this->get(route('photographer.show', $profile))
+            ->assertOk()
+            ->assertDontSee('Pregled vašeg profila');
     }
 
     public function test_email_verification_automatically_publishes_profile_and_opens_profile_editor(): void
@@ -92,6 +97,28 @@ class PhotographerDashboardTest extends TestCase
         $this->assertTrue($profile->active);
         $this->assertTrue($profile->verified);
         $this->assertNotNull($user->fresh()->email_verified_at);
+
+        auth()->logout();
+
+        $this->get(route('photographer.show', $profile))
+            ->assertOk()
+            ->assertSee('<meta name="robots" content="index, follow">', false);
+
+        $this->get(route('search'))
+            ->assertOk()
+            ->assertSee($profile->display_name);
+    }
+
+    public function test_verification_response_repairs_an_inactive_verified_profile(): void
+    {
+        $profile = $this->photographer->photographerProfile;
+        $profile->update(['active' => false, 'verified' => false]);
+
+        app(DashboardEmailVerificationResponse::class)->toResponse(request());
+
+        $profile->refresh();
+        $this->assertTrue($profile->active);
+        $this->assertTrue($profile->verified);
     }
 
     public function test_first_login_opens_profile_editor_until_profile_is_saved(): void
