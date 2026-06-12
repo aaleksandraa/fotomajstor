@@ -75,18 +75,23 @@ window.availabilityCalendar = (config) => ({
             return;
         }
 
+        const date = this.selectedDate;
+        const previousBusy = this.selectedBusy;
         this.saving = true;
+        this.setDateStatusLocally(date, busy);
+        this.selectedBusy = busy;
+        this.modalOpen = false;
+        this.paintDate(date, busy, true);
 
         try {
-            await this.$wire.setDateStatus(this.selectedDate, busy);
+            await this.$wire.setDateStatus(date, busy);
+        } catch (error) {
+            this.setDateStatusLocally(date, previousBusy);
+            this.selectedBusy = previousBusy;
+            this.modalOpen = true;
+            this.paintDate(date, previousBusy);
 
-            this.busyDates = busy
-                ? [...new Set([...this.busyDates, this.selectedDate])].sort()
-                : this.busyDates.filter((date) => date !== this.selectedDate);
-
-            this.selectedBusy = busy;
-            this.modalOpen = false;
-            this.decorateDays();
+            throw error;
         } finally {
             this.saving = false;
         }
@@ -129,22 +134,46 @@ window.availabilityCalendar = (config) => ({
     },
 
     decorateDays() {
-        this.$nextTick(() => {
-            this.$refs.calendar.querySelectorAll('[data-vc-date]').forEach((element) => {
-                const isCurrentMonth = element.dataset.vcDateMonth === 'current';
-                const busy = this.busyDates.includes(element.dataset.vcDate);
-                const button = element.querySelector('[data-vc-date-btn]');
+        this.$refs.calendar.querySelectorAll('[data-vc-date]').forEach((element) => {
+            const isCurrentMonth = element.dataset.vcDateMonth === 'current';
+            const busy = this.busyDates.includes(element.dataset.vcDate);
 
-                element.classList.toggle('availability-busy-day', isCurrentMonth && busy);
-                element.classList.toggle('availability-free-day', isCurrentMonth && !busy);
-
-                if (button && isCurrentMonth) {
-                    button.dataset.availabilityStatus = busy ? config.busyLabel : config.freeLabel;
-                } else if (button) {
-                    delete button.dataset.availabilityStatus;
-                }
-            });
+            this.paintDateElement(element, busy, isCurrentMonth);
         });
+    },
+
+    setDateStatusLocally(date, busy) {
+        this.busyDates = busy
+            ? [...new Set([...this.busyDates, date])].sort()
+            : this.busyDates.filter((busyDate) => busyDate !== date);
+    },
+
+    paintDate(date, busy, animate = false) {
+        this.$refs.calendar.querySelectorAll('[data-vc-date]').forEach((element) => {
+            if (element.dataset.vcDate !== date || element.dataset.vcDateMonth !== 'current') return;
+
+            this.paintDateElement(element, busy, true);
+
+            if (animate) {
+                element.classList.remove('availability-status-updated');
+                void element.offsetWidth;
+                element.classList.add('availability-status-updated');
+                window.setTimeout(() => element.classList.remove('availability-status-updated'), 700);
+            }
+        });
+    },
+
+    paintDateElement(element, busy, isCurrentMonth) {
+        const button = element.querySelector('[data-vc-date-btn]');
+
+        element.classList.toggle('availability-busy-day', isCurrentMonth && busy);
+        element.classList.toggle('availability-free-day', isCurrentMonth && !busy);
+
+        if (button && isCurrentMonth) {
+            button.dataset.availabilityStatus = busy ? config.busyLabel : config.freeLabel;
+        } else if (button) {
+            delete button.dataset.availabilityStatus;
+        }
     },
 
     localizedLabels() {

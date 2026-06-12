@@ -130,6 +130,7 @@ class PhotographerDashboardTest extends TestCase
             ->assertSee('handleCalendarClick($event)', false)
             ->assertSee('applyDateStatus(false)', false)
             ->assertSee('applyDateStatus(true)', false)
+            ->assertSee('availability-status-confirmed', false)
             ->assertSee('Slobodan dan')
             ->assertSee('Zauzet dan')
             ->assertSee('bs-BA', false);
