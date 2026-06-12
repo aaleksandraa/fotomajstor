@@ -15,6 +15,8 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 class EditProfile extends Page implements HasForms
@@ -119,15 +121,20 @@ class EditProfile extends Page implements HasForms
         unset($data['categories'], $data['cities'], $data['social'], $data['id'], $data['user_id'], $data['slug'],
             $data['active'], $data['verified'], $data['featured'], $data['profile_views'], $data['created_at'], $data['updated_at']);
 
-        $data['onboarding_completed_at'] = $this->profile->onboarding_completed_at ?? now();
-        $this->profile->update($data);
-        $this->profile->socialLinks()->updateOrCreate([], $social);
-        $this->profile->categories()->sync($categories);
-        $this->profile->cities()->sync($cities);
-        $this->profile->countries()->sync(
-            City::whereIn('id', $cities)->pluck('country_id')->unique()->all()
-        );
-        auth()->user()->publishVerifiedPhotographerProfile();
+        if (Schema::hasColumn('photographer_profiles', 'onboarding_completed_at')) {
+            $data['onboarding_completed_at'] = $this->profile->onboarding_completed_at ?? now();
+        }
+
+        DB::transaction(function () use ($data, $social, $categories, $cities): void {
+            $this->profile->update($data);
+            $this->profile->socialLinks()->updateOrCreate([], $social);
+            $this->profile->categories()->sync($categories);
+            $this->profile->cities()->sync($cities);
+            $this->profile->countries()->sync(
+                City::whereIn('id', $cities)->pluck('country_id')->unique()->all()
+            );
+            auth()->user()->publishVerifiedPhotographerProfile();
+        });
 
         Notification::make()->title('Profil je sačuvan')->success()->send();
     }

@@ -20,6 +20,7 @@ use App\Services\PortfolioService;
 use Database\Seeders\CategorySeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -208,6 +209,26 @@ class PhotographerDashboardTest extends TestCase
             $this->photographer->photographerProfile()->firstOrFail()->service_type,
         );
         $this->assertNotNull($this->photographer->photographerProfile()->firstOrFail()->onboarding_completed_at);
+    }
+
+    public function test_profile_can_be_saved_before_onboarding_migration_is_run(): void
+    {
+        Schema::shouldReceive('hasColumn')
+            ->once()
+            ->with('photographer_profiles', 'onboarding_completed_at')
+            ->andReturnFalse();
+
+        Livewire::test(EditProfile::class)
+            ->fillForm([
+                'display_name' => 'Novi javni naziv',
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame(
+            'Novi javni naziv',
+            $this->photographer->photographerProfile()->value('display_name'),
+        );
     }
 
     public function test_portfolio_is_managed_as_category_albums_with_bulk_upload_and_reordering(): void
