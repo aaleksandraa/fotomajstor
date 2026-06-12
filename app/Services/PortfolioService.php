@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\PhotographerProfile;
 use App\Models\PortfolioAlbum;
 use App\Models\PortfolioImage;
+use App\Models\PortfolioVideo;
 use Illuminate\Support\Facades\DB;
 
 class PortfolioService
@@ -36,6 +37,20 @@ class PortfolioService
         $album = $this->addImages($profile, $category, [$imagePath]);
 
         return $album->images()->latest('id')->firstOrFail();
+    }
+
+    public function addVideo(PhotographerProfile $profile, Category $category, string $url, ?string $title = null): PortfolioVideo
+    {
+        return DB::transaction(function () use ($profile, $category, $url, $title): PortfolioVideo {
+            $album = PortfolioAlbum::forProfileCategory($profile, $category);
+            $profile->categories()->syncWithoutDetaching([$category->id]);
+
+            return $album->videos()->create([
+                'url' => $url,
+                'title' => $title,
+                'sort_order' => ((int) $album->videos()->max('sort_order')) + 1,
+            ]);
+        });
     }
 
     public function updateImage(PortfolioImage $image, PhotographerProfile $profile, Category $category, string $imagePath): PortfolioImage

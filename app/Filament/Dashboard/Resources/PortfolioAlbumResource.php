@@ -4,6 +4,7 @@ namespace App\Filament\Dashboard\Resources;
 
 use App\Filament\Dashboard\Resources\PortfolioAlbumResource\Pages;
 use App\Filament\Dashboard\Resources\PortfolioAlbumResource\RelationManagers\ImagesRelationManager;
+use App\Filament\Dashboard\Resources\PortfolioAlbumResource\RelationManagers\VideosRelationManager;
 use App\Models\Category;
 use App\Models\PortfolioAlbum;
 use Filament\Forms;
@@ -36,7 +37,7 @@ class PortfolioAlbumResource extends Resource
     {
         return parent::getEloquentQuery()
             ->where('photographer_profile_id', static::profileId())
-            ->with(['category', 'images']);
+            ->with(['category', 'images', 'videos']);
     }
 
     public static function form(Form $form): Form
@@ -89,6 +90,10 @@ class PortfolioAlbumResource extends Resource
                     ->counts('images')
                     ->label('Broj fotografija')
                     ->badge(),
+                Tables\Columns\TextColumn::make('videos_count')
+                    ->counts('videos')
+                    ->label('Broj videa')
+                    ->badge(),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Posljednja izmjena')
                     ->since()
@@ -102,7 +107,7 @@ class PortfolioAlbumResource extends Resource
                 Tables\Actions\DeleteBulkAction::make(),
             ])
             ->emptyStateHeading('Još nemate portfolio albume')
-            ->emptyStateDescription('Kreirajte album odabirom kategorije i dodajte više fotografija odjednom.')
+            ->emptyStateDescription('Kreirajte album odabirom kategorije i dodajte fotografije ili video zapise.')
             ->defaultSort('updated_at', 'desc');
     }
 
@@ -110,6 +115,7 @@ class PortfolioAlbumResource extends Resource
     {
         return [
             ImagesRelationManager::class,
+            VideosRelationManager::class,
         ];
     }
 

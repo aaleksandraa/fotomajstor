@@ -7,13 +7,13 @@
              class="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105 group-hover:opacity-100">
     @endif
     <div class="absolute inset-0 bg-gradient-to-t from-ink-900/85 via-ink-900/20 to-transparent"></div>
-    <div class="absolute inset-x-0 bottom-0 p-5">
+    <div class="absolute inset-x-0 bottom-0 p-4 sm:p-5">
         <h3 class="font-serif text-xl text-white">{{ $category->name }}</h3>
         @if ($category->description)
-            <p class="mt-1 line-clamp-1 text-sm text-white/75">{{ $category->description }}</p>
+            <p class="mt-1 hidden line-clamp-1 text-sm text-white/75 sm:block">{{ $category->description }}</p>
         @endif
         @if (! is_null($count))
-            <p class="mt-2 text-xs font-semibold uppercase tracking-wider text-accent-300">{{ trans_choice(':count profesionalac|:count profesionalaca', $count, ['count' => $count]) }}</p>
+            <p class="mt-2 hidden text-xs font-semibold uppercase tracking-wider text-accent-300 sm:block">{{ trans_choice(':count profesionalac|:count profesionalaca', $count, ['count' => $count]) }}</p>
         @endif
     </div>
 </a>

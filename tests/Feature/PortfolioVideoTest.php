@@ -82,6 +82,17 @@ class PortfolioVideoTest extends TestCase
         ]);
     }
 
+    public function test_mobile_category_cards_show_only_the_category_title(): void
+    {
+        $this->seed(CategorySeeder::class);
+
+        $response = $this->get('/kategorije')->assertOk();
+
+        $response
+            ->assertSee('hidden line-clamp-1 text-sm text-white/75 sm:block', false)
+            ->assertSee('hidden text-xs font-semibold uppercase tracking-wider text-accent-300 sm:block', false);
+    }
+
     public function test_videographer_profile_does_not_show_top_photo_hero(): void
     {
         $this->seed([LocationSeeder::class, CategorySeeder::class]);

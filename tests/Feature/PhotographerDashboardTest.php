@@ -8,9 +8,12 @@ use App\Filament\Dashboard\Pages\Availability;
 use App\Filament\Dashboard\Pages\EditProfile;
 use App\Filament\Dashboard\Resources\PortfolioAlbumResource;
 use App\Filament\Dashboard\Resources\PortfolioAlbumResource\Pages\EditPortfolioAlbum;
+use App\Filament\Dashboard\Resources\PortfolioAlbumResource\Pages\ListPortfolioAlbums;
 use App\Filament\Dashboard\Resources\PortfolioAlbumResource\RelationManagers\ImagesRelationManager;
+use App\Filament\Dashboard\Resources\PortfolioAlbumResource\RelationManagers\VideosRelationManager;
 use App\Http\Responses\DashboardLoginResponse;
 use App\Models\Category;
+use App\Models\PortfolioVideo;
 use App\Models\User;
 use App\Services\PortfolioService;
 use Database\Seeders\CategorySeeder;
@@ -201,16 +204,20 @@ class PhotographerDashboardTest extends TestCase
         $this->get('/dashboard/portfolio-albums')
             ->assertOk()
             ->assertSee($category->name)
-            ->assertSee('Otvori album');
+            ->assertSee('Otvori album')
+            ->assertSee('Dodaj video')
+            ->assertSee('Broj videa');
 
         $this->get("/dashboard/portfolio-albums/{$album->id}/edit")
             ->assertOk()
-            ->assertDontSee('Alt tekst');
+            ->assertDontSee('Alt tekst')
+            ->assertSee('Video zapisi');
 
         $other = User::factory()->create(['role' => UserRole::Photographer]);
         $this->actingAs($other);
         $this->assertFalse(PortfolioAlbumResource::getEloquentQuery()->whereKey($album->id)->exists());
         $this->assertFalse(ImagesRelationManager::canViewForRecord($album, EditPortfolioAlbum::class));
+        $this->assertFalse(VideosRelationManager::canViewForRecord($album, EditPortfolioAlbum::class));
         $this->actingAs($this->photographer);
 
         Livewire::test(ImagesRelationManager::class, [
@@ -236,5 +243,46 @@ class PhotographerDashboardTest extends TestCase
             $images->pluck('id')->reverse()->values()->all(),
             $album->images()->orderBy('sort_order')->pluck('id')->all(),
         );
+
+        Livewire::test(VideosRelationManager::class, [
+            'ownerRecord' => $album,
+            'pageClass' => EditPortfolioAlbum::class,
+        ])
+            ->assertTableActionExists('create')
+            ->callTableAction('create', data: [
+                'url' => 'https://vimeo.com/123456789',
+                'title' => 'Video iz albuma',
+            ])
+            ->assertHasNoTableActionErrors();
+
+        $this->assertDatabaseHas(PortfolioVideo::class, [
+            'portfolio_album_id' => $album->id,
+            'provider' => 'vimeo',
+            'provider_video_id' => '123456789',
+            'sort_order' => 1,
+        ]);
+
+        $videoCategory = Category::whereKeyNot($category->id)->firstOrFail();
+
+        Livewire::test(ListPortfolioAlbums::class)
+            ->assertActionExists('addVideo')
+            ->callAction('addVideo', data: [
+                'category_id' => $videoCategory->id,
+                'url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'title' => 'Video bez fotografija',
+            ])
+            ->assertHasNoActionErrors();
+
+        $this->assertDatabaseHas(PortfolioVideo::class, [
+            'portfolio_album_id' => $profile->albums()->where('category_id', $videoCategory->id)->value('id'),
+            'provider' => 'youtube',
+            'provider_video_id' => 'dQw4w9WgXcQ',
+        ]);
+        $this->assertTrue($profile->categories()->whereKey($videoCategory->id)->exists());
+
+        $this->get(route('photographer.show', $profile))
+            ->assertOk()
+            ->assertSee('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ', false)
+            ->assertSee('Video bez fotografija');
     }
 }
