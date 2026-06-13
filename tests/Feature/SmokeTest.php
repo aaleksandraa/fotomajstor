@@ -79,6 +79,8 @@ class SmokeTest extends TestCase
             ['/fotografi'],
             ['/kategorije'],
             ['/gradovi'],
+            ['/politika-privatnosti'],
+            ['/uslovi-koriscenja'],
             ['/blog'],
             ['/blog/test-clanak'],
             ['/fotografi/vjencanja'],

@@ -45,6 +45,9 @@
                     <li><a href="{{ route('locale.switch', ['locale' => app()->getLocale(), 'redirect' => url('/dashboard')]) }}" class="text-sm text-ink-500 transition hover:text-ink-900">{{ __('Prijava za fotografe') }}</a></li>
                 @endguest
                 <li><a href="{{ $accountUrl }}" class="text-sm text-ink-500 transition hover:text-ink-900">{{ $accountLabel }}</a></li>
+                <li><a href="{{ localized_route('privacy') }}" class="text-sm text-ink-500 transition hover:text-ink-900">{{ __('Politika privatnosti') }}</a></li>
+                <li><a href="{{ localized_route('terms') }}" class="text-sm text-ink-500 transition hover:text-ink-900">{{ __('Uslovi korištenja') }}</a></li>
+                <li><button type="button" onclick="window.dispatchEvent(new Event('fotomajstor:cookie-settings'))" class="text-left text-sm text-ink-500 transition hover:text-ink-900">{{ __('Postavke kolačića') }}</button></li>
             </ul>
         </div>
     </div>

@@ -77,7 +77,7 @@ class SitemapController extends Controller
 
     private function addCorePages(Collection $urls, string $locale): void
     {
-        foreach (['home', 'search', 'categories.index', 'cities.index', 'blog.index'] as $routeName) {
+        foreach (['home', 'search', 'categories.index', 'cities.index', 'blog.index', 'privacy', 'terms'] as $routeName) {
             $this->add($urls, route($routeName), $locale);
         }
     }

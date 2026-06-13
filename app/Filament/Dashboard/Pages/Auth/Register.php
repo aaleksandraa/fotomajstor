@@ -7,9 +7,11 @@ use App\Enums\ServiceType;
 use App\Enums\UserRole;
 use App\Models\City;
 use App\Models\User;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Component;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ViewField;
 use Filament\Forms\Get;
 use Filament\Pages\Auth\Register as BaseRegister;
 use Illuminate\Database\Eloquent\Model;
@@ -45,6 +47,8 @@ class Register extends BaseRegister
                         $this->getEmailFormComponent(),
                         $this->getPasswordFormComponent(),
                         $this->getPasswordConfirmationFormComponent(),
+                        $this->getLegalDocumentsFormComponent(),
+                        $this->getLegalConsentFormComponent(),
                     ])
                     ->statePath('data'),
             ),
@@ -96,13 +100,33 @@ class Register extends BaseRegister
             ->native(false);
     }
 
+    protected function getLegalDocumentsFormComponent(): Component
+    {
+        return ViewField::make('legal_documents')
+            ->view('filament.forms.legal-documents')
+            ->dehydrated(false);
+    }
+
+    protected function getLegalConsentFormComponent(): Component
+    {
+        return Checkbox::make('legal_consent')
+            ->label(__('Prihvatam Politiku privatnosti i Uslove korištenja.'))
+            ->accepted()
+            ->required();
+    }
+
     protected function handleRegistration(array $data): Model
     {
+        $acceptedAt = now();
+
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => $data['password'],
             'role' => UserRole::Photographer,
+            'privacy_accepted_at' => $acceptedAt,
+            'terms_accepted_at' => $acceptedAt,
+            'legal_version' => config('legal.version'),
         ]);
 
         // UserObserver kreira osnovni (neaktivan) profil; ovdje ga obogaćujemo podacima iz forme.

@@ -134,8 +134,11 @@ class SecuritySeoTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSee('<meta name="google-site-verification" content="google-verification-token">', false)
-            ->assertSee('https://www.googletagmanager.com/gtag/js?id=G-ABC123DEF4', false)
-            ->assertSee("gtag('config', 'G-ABC123DEF4'", false);
+            ->assertSee('https://www.googletagmanager.com/gtag/js?id=', false)
+            ->assertSee("window.fotoMajstorAnalyticsId = 'G-ABC123DEF4'", false)
+            ->assertSee('Prihvati analitiku')
+            ->assertSee('Samo nužni')
+            ->assertDontSee('<script async src="https://www.googletagmanager.com/gtag/js?id=G-ABC123DEF4"', false);
     }
 
     public function test_invalid_google_analytics_id_does_not_render_tracking_script(): void
@@ -148,6 +151,27 @@ class SecuritySeoTest extends TestCase
             ->assertDontSee('googletagmanager.com/gtag/js', false)
             ->assertDontSee('javascript:alert', false)
             ->assertDontSee('google-site-verification', false);
+    }
+
+    public function test_legal_pages_and_footer_links_are_public(): void
+    {
+        $this->get('/politika-privatnosti')
+            ->assertOk()
+            ->assertSee('Politika privatnosti')
+            ->assertSee('Google Analytics')
+            ->assertSee('Vaša prava');
+
+        $this->get('/uslovi-koriscenja')
+            ->assertOk()
+            ->assertSee('Uslovi korištenja')
+            ->assertSee('FotoMajstor je katalog')
+            ->assertSee('ne naplaćuje proviziju');
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee(route('privacy'))
+            ->assertSee(route('terms'))
+            ->assertSee('Postavke kolačića');
     }
 
     /** @return array{0: User, 1: User} */

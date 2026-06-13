@@ -132,6 +132,7 @@ class AuthLocaleWebpTest extends TestCase
                 'email' => 'marko@example.com',
                 'password' => 'tajna-lozinka-123',
                 'passwordConfirmation' => 'tajna-lozinka-123',
+                'legal_consent' => true,
             ])
             ->call('register')
             ->assertRedirect('/dashboard/email-verification/prompt')
@@ -149,6 +150,9 @@ class AuthLocaleWebpTest extends TestCase
         $this->assertFalse((bool) $profile->active, 'Novi profil mora biti neaktivan do odobrenja.');
         $this->assertTrue($profile->cities()->whereKey($city->id)->exists());
         $this->assertNull($user->email_verified_at);
+        $this->assertNotNull($user->privacy_accepted_at);
+        $this->assertNotNull($user->terms_accepted_at);
+        $this->assertSame(config('legal.version'), $user->legal_version);
         Notification::assertSentTo($user, VerifyEmail::class);
 
         $this->get('/dashboard/email-verification/prompt')
@@ -236,6 +240,7 @@ class AuthLocaleWebpTest extends TestCase
                 'email' => 'smtp-test@example.com',
                 'password' => 'tajna-lozinka-123',
                 'passwordConfirmation' => 'tajna-lozinka-123',
+                'legal_consent' => true,
             ])
             ->call('register')
             ->assertRedirect('/dashboard/email-verification/prompt')
@@ -288,6 +293,7 @@ class AuthLocaleWebpTest extends TestCase
                 'email' => 'ana@example.com',
                 'password' => 'tajna-lozinka-123',
                 'passwordConfirmation' => 'tajna-lozinka-123',
+                'legal_consent' => true,
             ])
             ->call('register')
             ->assertHasNoFormErrors();
@@ -296,5 +302,29 @@ class AuthLocaleWebpTest extends TestCase
 
         $this->assertSame(ProfileType::Individual, $profile->profile_type);
         $this->assertSame('Ana Anić', $profile->display_name);
+    }
+
+    public function test_registration_requires_legal_consent(): void
+    {
+        $this->seed(LocationSeeder::class);
+        $city = City::query()->firstOrFail();
+
+        Filament::setCurrentPanel(Filament::getPanel('dashboard'));
+
+        Livewire::test(Register::class)
+            ->fillForm([
+                'name' => 'Bez Saglasnosti',
+                'profile_type' => ProfileType::Individual->value,
+                'service_type' => ServiceType::Photographer->value,
+                'primary_city_id' => $city->id,
+                'email' => 'bez-saglasnosti@example.com',
+                'password' => 'tajna-lozinka-123',
+                'passwordConfirmation' => 'tajna-lozinka-123',
+                'legal_consent' => false,
+            ])
+            ->call('register')
+            ->assertHasFormErrors(['legal_consent']);
+
+        $this->assertDatabaseMissing('users', ['email' => 'bez-saglasnosti@example.com']);
     }
 }

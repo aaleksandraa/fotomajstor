@@ -23,6 +23,7 @@
     </main>
 
     @include('partials.footer')
+    @include('partials.cookie-consent')
 
     @stack('scripts')
 </body>

@@ -81,4 +81,29 @@
     .eyebrow {
         @apply text-xs font-semibold uppercase tracking-[0.18em] text-accent-600;
     }
+
+    .legal-content {
+        @apply space-y-8 text-ink-600;
+    }
+
+    .legal-content section {
+        @apply space-y-3;
+    }
+
+    .legal-content h2 {
+        @apply font-serif text-2xl text-ink-900;
+    }
+
+    .legal-content p,
+    .legal-content li {
+        @apply leading-relaxed;
+    }
+
+    .legal-content ul {
+        @apply list-disc space-y-2 pl-5;
+    }
+
+    .legal-content a {
+        @apply font-medium text-accent-700 underline decoration-accent-300 underline-offset-4 hover:text-accent-900;
+    }
 }

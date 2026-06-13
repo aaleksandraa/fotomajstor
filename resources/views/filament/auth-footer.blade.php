@@ -6,6 +6,10 @@
         </svg>
         {{ __('Nazad na početnu') }}
     </a>
+    <div class="mt-3 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-gray-400">
+        <a href="{{ localized_route('privacy') }}" target="_blank" class="transition hover:text-amber-600">{{ __('Politika privatnosti') }}</a>
+        <a href="{{ localized_route('terms') }}" target="_blank" class="transition hover:text-amber-600">{{ __('Uslovi korištenja') }}</a>
+    </div>
 </div>
 <div class="mb-3 flex flex-wrap justify-center gap-1.5">
     @foreach (config('locales.supported', []) as $code => $language)

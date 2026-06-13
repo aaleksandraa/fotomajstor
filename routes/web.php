@@ -45,6 +45,8 @@ $publicRoutes = function (): void {
 
     Route::get('/kategorije', [PageController::class, 'categories'])->name('categories.index');
     Route::get('/gradovi', [PageController::class, 'cities'])->name('cities.index');
+    Route::get('/politika-privatnosti', [PageController::class, 'privacy'])->name('privacy');
+    Route::get('/uslovi-koriscenja', [PageController::class, 'terms'])->name('terms');
 
     Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
     Route::get('/blog/{post:slug}', [BlogController::class, 'show'])->name('blog.show');

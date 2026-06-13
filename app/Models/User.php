@@ -24,6 +24,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'name',
         'email',
         'email_verified_at',
+        'privacy_accepted_at',
+        'terms_accepted_at',
+        'legal_version',
         'password',
         'role',
     ];
@@ -37,6 +40,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'privacy_accepted_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
         ];

@@ -8,6 +8,52 @@ use App\Support\Seo;
 
 class PageController extends Controller
 {
+    public function privacy()
+    {
+        $seo = [
+            'title' => __('Politika privatnosti | FotoMajstor'),
+            'description' => __('Saznajte kako FotoMajstor prikuplja, koristi, čuva i štiti lične podatke korisnika i posjetilaca.'),
+            'canonical' => localized_route('privacy'),
+            'canonicalLocale' => config('locales.default'),
+            'locales' => [config('locales.default')],
+            'robots' => app()->getLocale() === config('locales.default') ? 'index, follow' : 'noindex, follow',
+            'jsonLd' => [Seo::breadcrumbs([
+                ['name' => __('Početna'), 'url' => localized_route('home')],
+                ['name' => __('Politika privatnosti'), 'url' => localized_route('privacy')],
+            ])],
+        ];
+
+        return view('public.legal', [
+            'title' => __('Politika privatnosti'),
+            'intro' => __('Ova politika objašnjava kako FotoMajstor obrađuje lične podatke posjetilaca i registrovanih fotografa i videografa.'),
+            'partial' => 'public.partials.privacy-content',
+            'seo' => $seo,
+        ]);
+    }
+
+    public function terms()
+    {
+        $seo = [
+            'title' => __('Uslovi korištenja | FotoMajstor'),
+            'description' => __('Pročitajte pravila korištenja platforme FotoMajstor za posjetioce, fotografe i videografe.'),
+            'canonical' => localized_route('terms'),
+            'canonicalLocale' => config('locales.default'),
+            'locales' => [config('locales.default')],
+            'robots' => app()->getLocale() === config('locales.default') ? 'index, follow' : 'noindex, follow',
+            'jsonLd' => [Seo::breadcrumbs([
+                ['name' => __('Početna'), 'url' => localized_route('home')],
+                ['name' => __('Uslovi korištenja'), 'url' => localized_route('terms')],
+            ])],
+        ];
+
+        return view('public.legal', [
+            'title' => __('Uslovi korištenja'),
+            'intro' => __('Ovi uslovi uređuju korištenje platforme FotoMajstor i odnos između platforme, posjetilaca i registrovanih profesionalaca.'),
+            'partial' => 'public.partials.terms-content',
+            'seo' => $seo,
+        ]);
+    }
+
     public function categories()
     {
         $categories = Category::active()->ordered()
