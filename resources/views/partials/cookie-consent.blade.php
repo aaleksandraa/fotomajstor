@@ -37,12 +37,11 @@
                 {{ __('Koristimo nužne kolačiće za rad i sigurnost stranice. Google Analytics aktiviramo samo uz vašu saglasnost kako bismo razumjeli korištenje i unaprijedili FotoMajstor.') }}
             </p>
             <div class="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs font-medium">
-                <a href="{{ localized_route('privacy') }}" class="text-accent-700 hover:text-accent-900">{{ __('Politika privatnosti') }}</a>
-                <a href="{{ localized_route('terms') }}" class="text-accent-700 hover:text-accent-900">{{ __('Uslovi korištenja') }}</a>
+                <a href="{{ localized_route('privacy') }}" class="text-accent-700 hover:text-accent-900">{{ __('Pročitaj više') }}</a>
             </div>
         </div>
         <div class="flex shrink-0 flex-col gap-2 sm:min-w-44">
-            <button type="button" @click="save('analytics')" class="btn-primary">{{ __('Prihvati analitiku') }}</button>
+            <button type="button" @click="save('analytics')" class="btn-primary">{{ __('Prihvati') }}</button>
             <button type="button" @click="save('necessary')" class="btn-outline">{{ __('Samo nužni') }}</button>
         </div>
     </div>

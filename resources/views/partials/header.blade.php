@@ -7,10 +7,9 @@
     ];
     $locales = config('locales.supported', []);
     $current = app()->getLocale();
-    $accountUrl = auth()->check()
-        ? account_dashboard_url()
-        : route('locale.switch', ['locale' => $current, 'redirect' => url('/dashboard/register')]);
-    $accountLabel = auth()->check() ? __('Dashboard') : __('Postani fotograf');
+    $loginUrl = url('/dashboard/login');
+    $registerUrl = url('/dashboard/register');
+    $logoutRoute = auth()->user()?->isAdmin() ? 'filament.admin.auth.logout' : 'filament.dashboard.auth.logout';
 @endphp
 <header x-data="{ open: false }" class="sticky top-0 z-40 border-b border-ink-100 bg-white/90 backdrop-blur">
     <div class="container-px flex h-16 items-center justify-between gap-4">
@@ -32,11 +31,16 @@
 
         <div class="hidden items-center gap-3 md:flex">
             <x-language-switcher :locales="$locales" :current="$current" />
-            <a href="{{ localized_route('search') }}" class="btn-outline">
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="m20 20-3-3"/></svg>
-                {{ __('Pretraži') }}
-            </a>
-            <a href="{{ $accountUrl }}" class="btn-primary">{{ $accountLabel }}</a>
+            @auth
+                <a href="{{ account_dashboard_url() }}" class="btn-outline">{{ __('Dashboard') }}</a>
+                <form method="POST" action="{{ route($logoutRoute) }}">
+                    @csrf
+                    <button type="submit" class="btn-primary">{{ __('Odjavi se') }}</button>
+                </form>
+            @else
+                <a href="{{ $loginUrl }}" class="btn-outline">{{ __('Prijavi se') }}</a>
+                <a href="{{ $registerUrl }}" class="btn-primary">{{ __('Registruj se') }}</a>
+            @endauth
         </div>
 
         <button @click="open = !open" class="md:hidden" aria-label="{{ __('Meni') }}">
@@ -49,7 +53,16 @@
             @foreach ($nav as $item)
                 <a href="{{ $item['url'] }}" class="block rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-ink-50">{{ $item['label'] }}</a>
             @endforeach
-            <a href="{{ $accountUrl }}" class="btn-primary mt-2 w-full">{{ $accountLabel }}</a>
+            @auth
+                <a href="{{ account_dashboard_url() }}" class="btn-outline mt-2 w-full">{{ __('Dashboard') }}</a>
+                <form method="POST" action="{{ route($logoutRoute) }}">
+                    @csrf
+                    <button type="submit" class="btn-primary mt-2 w-full">{{ __('Odjavi se') }}</button>
+                </form>
+            @else
+                <a href="{{ $loginUrl }}" class="btn-outline mt-2 w-full">{{ __('Prijavi se') }}</a>
+                <a href="{{ $registerUrl }}" class="btn-primary mt-2 w-full">{{ __('Registruj se') }}</a>
+            @endauth
             <div class="mt-3 border-t border-ink-100 pt-3">
                 <p class="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-ink-400">{{ __('Jezik') }}</p>
                 <div class="flex flex-wrap gap-1 px-3">

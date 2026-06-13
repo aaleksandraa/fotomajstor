@@ -48,7 +48,7 @@ class SmokeTest extends TestCase
         // Observer auto-creates a profile; activate and enrich it.
         $this->profile = $photographer->photographerProfile;
         $this->profile->update(['active' => true, 'display_name' => 'Test Fotograf', 'slug' => 'test-fotograf']);
-        $city = City::first();
+        $city = City::where('slug', 'banja-luka')->firstOrFail();
         $category = Category::first();
         $this->profile->update(['primary_city_id' => $city->id, 'primary_country_id' => $city->country_id]);
         $this->profile->categories()->attach($category->id);

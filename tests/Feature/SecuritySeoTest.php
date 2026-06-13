@@ -136,8 +136,10 @@ class SecuritySeoTest extends TestCase
             ->assertSee('<meta name="google-site-verification" content="google-verification-token">', false)
             ->assertSee('https://www.googletagmanager.com/gtag/js?id=', false)
             ->assertSee("window.fotoMajstorAnalyticsId = 'G-ABC123DEF4'", false)
-            ->assertSee('Prihvati analitiku')
+            ->assertSee('Prihvati')
             ->assertSee('Samo nužni')
+            ->assertSee('Pročitaj više')
+            ->assertDontSee('Prihvati analitiku')
             ->assertDontSee('<script async src="https://www.googletagmanager.com/gtag/js?id=G-ABC123DEF4"', false);
     }
 

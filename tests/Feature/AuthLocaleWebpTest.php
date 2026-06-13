@@ -188,15 +188,21 @@ class AuthLocaleWebpTest extends TestCase
             ->get('/')
             ->assertOk()
             ->assertSee('Dashboard')
+            ->assertSee('Odjavi se')
             ->assertSee('href="'.url('/dashboard').'"', false)
-            ->assertDontSee('Postani fotograf');
+            ->assertSee('action="'.route('filament.dashboard.auth.logout').'"', false)
+            ->assertDontSee('Registruj se');
     }
 
     public function test_public_navigation_uses_registration_for_guest(): void
     {
         $this->get('/')
             ->assertOk()
-            ->assertSee('Postani fotograf')
+            ->assertSee('Prijavi se')
+            ->assertSee('Registruj se')
+            ->assertSee(url('/dashboard/login'))
+            ->assertSee(url('/dashboard/register'))
+            ->assertDontSee('Odjavi se')
             ->assertDontSee('href="'.url('/dashboard').'"', false);
     }
 
