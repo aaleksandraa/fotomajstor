@@ -26,6 +26,95 @@ if (root) {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
+    const renderTarget = new THREE.WebGLRenderTarget(
+        window.innerWidth * renderer.getPixelRatio(),
+        window.innerHeight * renderer.getPixelRatio(),
+        {
+            minFilter: THREE.LinearFilter,
+            magFilter: THREE.LinearFilter,
+            depthBuffer: true,
+        },
+    );
+    renderTarget.texture.colorSpace = THREE.SRGBColorSpace;
+
+    const lensUniforms = {
+        scene: { value: renderTarget.texture },
+        resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+        mouse: { value: new THREE.Vector2(0.5, 0.5) },
+        strength: { value: 0.42 },
+        time: { value: 0 },
+        motion: { value: 0 },
+    };
+    const lensMaterial = new THREE.ShaderMaterial({
+        uniforms: lensUniforms,
+        depthTest: false,
+        depthWrite: false,
+        vertexShader: `
+            varying vec2 vUv;
+
+            void main() {
+                vUv = uv;
+                gl_Position = vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            precision highp float;
+
+            uniform sampler2D scene;
+            uniform vec2 resolution;
+            uniform vec2 mouse;
+            uniform float strength;
+            uniform float time;
+            uniform float motion;
+            varying vec2 vUv;
+
+            vec2 lensUv(vec2 uv) {
+                float aspect = resolution.x / resolution.y;
+                vec2 centered = uv - 0.5;
+                vec2 aspectCentered = centered * vec2(aspect, 1.0);
+                float dist = length(aspectCentered);
+                float barrel = 1.0 + dist * dist * strength * 0.21;
+                vec2 warped = centered * barrel + 0.5;
+
+                vec2 lazyMouse = mouse - 0.5;
+                warped.x += lazyMouse.x * strength * 0.055 * centered.y;
+                warped.y += lazyMouse.y * strength * 0.055 * centered.x;
+                warped.x += sin(uv.y * 12.0 + time * 0.6) * strength * (0.0011 + motion * 0.0015);
+                warped.y += cos(uv.x * 10.0 + time * 0.5) * strength * (0.0007 + motion * 0.0010);
+
+                return warped;
+            }
+
+            void main() {
+                vec2 uv = lensUv(vUv);
+                vec2 centered = vUv - 0.5;
+                float aspect = resolution.x / resolution.y;
+                float dist = length(centered * vec2(aspect, 1.0));
+                float edge = smoothstep(0.72, 1.05, dist);
+                float aberration = (0.00045 + motion * 0.0014) * strength * smoothstep(0.18, 0.95, dist);
+                vec2 channelOffset = normalize(centered + vec2(0.0001)) * aberration;
+
+                float inside = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
+                float red = texture2D(scene, uv + channelOffset).r;
+                float green = texture2D(scene, uv).g;
+                float blue = texture2D(scene, uv - channelOffset).b;
+                vec3 color = vec3(red, green, blue);
+
+                float scan = sin((vUv.y * resolution.y * 0.42) + time * 18.0) * 0.5 + 0.5;
+                color *= 1.0 - scan * (0.012 + motion * 0.012);
+                color *= 1.0 - edge * 0.48;
+                color *= inside;
+
+                gl_FragColor = vec4(color, 1.0);
+                #include <tonemapping_fragment>
+                #include <colorspace_fragment>
+            }
+        `,
+    });
+    const lensScene = new THREE.Scene();
+    const lensCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    lensScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), lensMaterial));
+
     const gallery = new THREE.Group();
     scene.add(gallery);
 
@@ -59,6 +148,12 @@ if (root) {
         motion: 0,
         scrollX: 0,
         scrollY: 0,
+        mouseX: 0.5,
+        mouseY: 0.5,
+        targetMouseX: 0.5,
+        targetMouseY: 0.5,
+        lensStrength: 0.42,
+        targetLensStrength: 0.42,
     };
 
     let verticalSpan = 1;
@@ -66,8 +161,18 @@ if (root) {
     const wrapCentered = (value, span) => THREE.MathUtils.euclideanModulo(value + span / 2, span) - span / 2;
 
     function pointerPosition(event) {
-        pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-        pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        const uv = new THREE.Vector2(event.clientX / window.innerWidth, 1 - event.clientY / window.innerHeight);
+        const centered = uv.clone().subScalar(0.5);
+        const aspect = window.innerWidth / window.innerHeight;
+        const distance = centered.clone().multiply(new THREE.Vector2(aspect, 1)).length();
+        const barrel = 1 + distance * distance * state.lensStrength * 0.21;
+        const lazyMouse = new THREE.Vector2(state.mouseX - 0.5, state.mouseY - 0.5);
+        const distorted = centered.multiplyScalar(barrel).addScalar(0.5);
+
+        distorted.x += lazyMouse.x * state.lensStrength * 0.055 * (uv.y - 0.5);
+        distorted.y += lazyMouse.y * state.lensStrength * 0.055 * (uv.x - 0.5);
+        pointer.x = distorted.x * 2 - 1;
+        pointer.y = distorted.y * 2 - 1;
     }
 
     function intersections(event) {
@@ -315,6 +420,9 @@ if (root) {
 
     canvas.addEventListener('pointerdown', (event) => {
         if (state.modalOpen || ! event.isPrimary) return;
+        state.targetMouseX = event.clientX / window.innerWidth;
+        state.targetMouseY = 1 - event.clientY / window.innerHeight;
+        state.targetLensStrength = 0.5;
         state.dragging = true;
         state.moved = false;
         state.activePointerId = event.pointerId;
@@ -330,6 +438,10 @@ if (root) {
 
     canvas.addEventListener('pointermove', (event) => {
         if (state.modalOpen) return;
+
+        state.targetMouseX = event.clientX / window.innerWidth;
+        state.targetMouseY = 1 - event.clientY / window.innerHeight;
+        state.targetLensStrength = 0.5;
 
         if (! state.dragging) {
             setHovered(intersections(event)[0]?.object ?? null);
@@ -362,6 +474,13 @@ if (root) {
         if (! state.moved) openImage(tappedCard);
     });
 
+    canvas.addEventListener('pointerenter', () => {
+        state.targetLensStrength = 0.5;
+    });
+    canvas.addEventListener('pointerleave', () => {
+        if (! state.dragging) state.targetLensStrength = 0.36;
+    });
+
     canvas.addEventListener('pointercancel', () => {
         state.dragging = false;
         state.activePointerId = null;
@@ -388,10 +507,16 @@ if (root) {
         camera.updateProjectionMatrix();
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderTarget.setSize(
+            window.innerWidth * renderer.getPixelRatio(),
+            window.innerHeight * renderer.getPixelRatio(),
+        );
+        lensUniforms.resolution.value.set(window.innerWidth, window.innerHeight);
     });
 
     function render() {
         shaderUniforms.time.value += Math.min(clock.getDelta(), 0.05);
+        lensUniforms.time.value = shaderUniforms.time.value;
 
         if (! state.dragging && ! state.modalOpen) {
             state.targetYaw -= state.scrollX * 0.00062;
@@ -416,6 +541,9 @@ if (root) {
             1,
         );
         state.motion += (motionTarget - state.motion) * 0.09;
+        state.mouseX += (state.targetMouseX - state.mouseX) * 0.05;
+        state.mouseY += (state.targetMouseY - state.mouseY) * 0.05;
+        state.lensStrength += (state.targetLensStrength - state.lensStrength) * 0.04;
         shaderUniforms.motion.value = state.motion;
         shaderUniforms.direction.value.set(
             THREE.MathUtils.clamp(state.velocityX * 24, -1, 1),
@@ -426,10 +554,16 @@ if (root) {
         camera.position.x += (THREE.MathUtils.clamp(-state.velocityX * 4.5, -0.2, 0.2) - camera.position.x) * 0.06;
         camera.position.y += (THREE.MathUtils.clamp(state.velocityY * 1.8, -0.14, 0.14) - camera.position.y) * 0.06;
         camera.position.z += ((state.motion * 0.22) - camera.position.z) * 0.07;
+        lensUniforms.mouse.value.set(state.mouseX, state.mouseY);
+        lensUniforms.strength.value = state.lensStrength;
+        lensUniforms.motion.value = state.motion;
         cards.forEach((card) => {
             card.position.y = wrapCentered(card.userData.baseY + state.vertical, verticalSpan);
         });
+        renderer.setRenderTarget(renderTarget);
         renderer.render(scene, camera);
+        renderer.setRenderTarget(null);
+        renderer.render(lensScene, lensCamera);
         requestAnimationFrame(render);
     }
 
