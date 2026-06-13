@@ -18,7 +18,7 @@ if (root) {
     scene.background = new THREE.Color(0x050505);
     scene.fog = new THREE.FogExp2(0x050505, 0.032);
 
-    const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(window.innerWidth < 700 ? 72 : 76, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.rotation.order = 'YXZ';
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -57,6 +57,8 @@ if (root) {
         pressedCard: null,
         pointerType: 'mouse',
         motion: 0,
+        scrollX: 0,
+        scrollY: 0,
     };
 
     let verticalSpan = 1;
@@ -248,10 +250,10 @@ if (root) {
         progress.textContent = `${criticalImageCount} / ${rawImages.length}`;
 
         const mobile = window.innerWidth < 700;
-        const rows = mobile ? 10 : 11;
-        const columns = mobile ? 16 : 20;
-        const radius = mobile ? 8.2 : 9.6;
-        const rowGap = 2.7;
+        const rows = mobile ? 10 : 9;
+        const columns = mobile ? 16 : 14;
+        const radius = mobile ? 8.2 : 8.9;
+        const rowGap = mobile ? 2.7 : 3.15;
         verticalSpan = rows * rowGap;
         let cellIndex = 0;
 
@@ -267,8 +269,8 @@ if (root) {
                 const longitude = (column / columns) * Math.PI * 2 + stagger;
                 const source = texture.image;
                 const aspect = source?.width && source?.height ? source.width / source.height : 1.25;
-                const width = window.innerWidth < 700 ? 2.85 : 2.92;
-                const height = THREE.MathUtils.clamp(width / aspect, 1.95, 2.55);
+                const width = mobile ? 2.85 : 3.65;
+                const height = THREE.MathUtils.clamp(width / aspect, mobile ? 1.95 : 2.45, mobile ? 2.55 : 3.02);
                 const geometry = new THREE.PlaneGeometry(width, height);
                 const material = new THREE.MeshBasicMaterial({
                     map: texture,
@@ -369,10 +371,8 @@ if (root) {
 
     canvas.addEventListener('wheel', (event) => {
         event.preventDefault();
-        state.targetYaw -= event.deltaX * 0.00075;
-        state.targetVertical -= event.deltaY * 0.006;
-        state.velocityX = -event.deltaX * 0.00008;
-        state.velocityY = -event.deltaY * 0.0008;
+        state.scrollX += event.deltaX;
+        state.scrollY += event.deltaY;
     }, { passive: false });
 
     closeButton.addEventListener('click', closeImage);
@@ -384,6 +384,7 @@ if (root) {
     });
     window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
+        camera.fov = window.innerWidth < 700 ? 72 : 76;
         camera.updateProjectionMatrix();
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -393,14 +394,20 @@ if (root) {
         shaderUniforms.time.value += Math.min(clock.getDelta(), 0.05);
 
         if (! state.dragging && ! state.modalOpen) {
+            state.targetYaw -= state.scrollX * 0.00062;
+            state.targetVertical -= state.scrollY * 0.0052;
+            state.velocityX -= state.scrollX * 0.000012;
+            state.velocityY -= state.scrollY * 0.00011;
+            state.scrollX *= 0.78;
+            state.scrollY *= 0.78;
             state.targetYaw += state.velocityX;
             state.targetVertical += state.velocityY;
-            state.velocityX *= 0.94;
-            state.velocityY *= 0.94;
+            state.velocityX *= 0.955;
+            state.velocityY *= 0.955;
         }
 
-        state.yaw += (state.targetYaw - state.yaw) * 0.075;
-        state.vertical += (state.targetVertical - state.vertical) * 0.075;
+        state.yaw += (state.targetYaw - state.yaw) * 0.065;
+        state.vertical += (state.targetVertical - state.vertical) * 0.065;
         const motionTarget = Math.min(
             Math.abs(state.targetYaw - state.yaw) * 1.8
             + Math.abs(state.targetVertical - state.vertical) * 0.1
@@ -416,6 +423,9 @@ if (root) {
         );
         camera.rotation.y = state.yaw;
         camera.rotation.z += ((state.velocityX * 0.8) - camera.rotation.z) * 0.055;
+        camera.position.x += (THREE.MathUtils.clamp(-state.velocityX * 4.5, -0.2, 0.2) - camera.position.x) * 0.06;
+        camera.position.y += (THREE.MathUtils.clamp(state.velocityY * 1.8, -0.14, 0.14) - camera.position.y) * 0.06;
+        camera.position.z += ((state.motion * 0.22) - camera.position.z) * 0.07;
         cards.forEach((card) => {
             card.position.y = wrapCentered(card.userData.baseY + state.vertical, verticalSpan);
         });

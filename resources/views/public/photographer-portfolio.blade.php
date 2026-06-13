@@ -16,6 +16,7 @@
     <style>
         html, body { width: 100%; height: 100%; overflow: hidden; background: #050505; }
         [data-spherical-gallery] { position: fixed; inset: 0; color: #fff; background: #050505; }
+        [data-spherical-gallery]::after { position: fixed; inset: 0; z-index: 5; pointer-events: none; content: ''; background: radial-gradient(ellipse at center, transparent 48%, rgba(0,0,0,.08) 68%, rgba(0,0,0,.44) 100%); }
         [data-spherical-gallery] canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent; }
         [data-spherical-gallery].is-dragging canvas { cursor: grabbing; }
         [data-spherical-gallery].is-hovering:not(.is-dragging) canvas { cursor: pointer; }
