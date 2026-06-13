@@ -16,7 +16,7 @@
     <style>
         html, body { width: 100%; height: 100%; overflow: hidden; background: #050505; }
         [data-spherical-gallery] { position: fixed; inset: 0; color: #fff; background: #050505; }
-        [data-spherical-gallery] canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+        [data-spherical-gallery] canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent; }
         [data-spherical-gallery].is-dragging canvas { cursor: grabbing; }
         [data-spherical-gallery].is-hovering:not(.is-dragging) canvas { cursor: pointer; }
         .gallery-chrome { position: fixed; z-index: 10; display: flex; align-items: center; border: 1px solid rgba(255,255,255,.16); background: rgba(8,8,8,.62); box-shadow: 0 12px 40px rgba(0,0,0,.3); backdrop-filter: blur(18px); }
@@ -41,6 +41,8 @@
             .gallery-count { top: 12px; right: 12px; padding: 11px 12px; }
             .gallery-count span { display: none; }
             .gallery-hint { bottom: 14px; }
+            .gallery-modal { padding: 68px 12px 16px; }
+            .gallery-modal img { max-width: 100%; max-height: calc(100dvh - 84px); }
         }
         @media (prefers-reduced-motion: reduce) {
             .gallery-hint { transition: none; }

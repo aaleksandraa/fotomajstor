@@ -40,16 +40,21 @@ if (root) {
         lastX: 0,
         lastY: 0,
         yaw: 0,
-        pitch: 0,
+        vertical: 0,
         targetYaw: 0,
-        targetPitch: 0,
+        targetVertical: 0,
         velocityX: 0,
         velocityY: 0,
         hovered: null,
         modalOpen: false,
+        activePointerId: null,
+        pressedCard: null,
+        pointerType: 'mouse',
     };
 
-    const clampPitch = (value) => THREE.MathUtils.clamp(value, -1.12, 1.12);
+    let verticalSpan = 1;
+
+    const wrapCentered = (value, span) => THREE.MathUtils.euclideanModulo(value + span / 2, span) - span / 2;
 
     function pointerPosition(event) {
         pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -196,14 +201,16 @@ if (root) {
         );
         progress.textContent = `${criticalImageCount} / ${rawImages.length}`;
 
-        const rows = 11;
-        const columns = window.innerWidth < 700 ? 18 : 20;
-        const radius = window.innerWidth < 700 ? 8.2 : 9.6;
-        const latitudeRange = Math.PI * 0.88;
+        const mobile = window.innerWidth < 700;
+        const rows = mobile ? 10 : 11;
+        const columns = mobile ? 16 : 20;
+        const radius = mobile ? 8.2 : 9.6;
+        const rowGap = mobile ? 2.9 : 3.15;
+        verticalSpan = rows * rowGap;
         let cellIndex = 0;
 
         for (let row = 0; row < rows; row++) {
-            const latitude = (row / (rows - 1) - 0.5) * latitudeRange;
+            const baseY = (row - (rows - 1) / 2) * rowGap;
             const stagger = (row % 2) * (Math.PI * 2 / columns / 2);
 
             for (let column = 0; column < columns; column++) {
@@ -225,15 +232,14 @@ if (root) {
                     toneMapped: false,
                 });
                 const mesh = new THREE.Mesh(geometry, material);
-                const horizontalRadius = radius * Math.cos(latitude);
 
                 mesh.position.set(
-                    horizontalRadius * Math.sin(longitude),
-                    radius * Math.sin(latitude),
-                    -horizontalRadius * Math.cos(longitude),
+                    radius * Math.sin(longitude),
+                    baseY,
+                    -radius * Math.cos(longitude),
                 );
-                mesh.lookAt(0, 0, 0);
-                mesh.userData = { ...image, imageIndex, textureLoaded };
+                mesh.lookAt(0, baseY, 0);
+                mesh.userData = { ...image, imageIndex, textureLoaded, baseY };
                 gallery.add(mesh);
                 cards.push(mesh);
                 cellIndex++;
@@ -259,9 +265,12 @@ if (root) {
     }
 
     canvas.addEventListener('pointerdown', (event) => {
-        if (state.modalOpen) return;
+        if (state.modalOpen || ! event.isPrimary) return;
         state.dragging = true;
         state.moved = false;
+        state.activePointerId = event.pointerId;
+        state.pointerType = event.pointerType;
+        state.pressedCard = intersections(event)[0]?.object ?? null;
         state.startX = state.lastX = event.clientX;
         state.startY = state.lastY = event.clientY;
         state.velocityX = 0;
@@ -278,35 +287,45 @@ if (root) {
             return;
         }
 
+        if (event.pointerId !== state.activePointerId) return;
+
         const deltaX = event.clientX - state.lastX;
         const deltaY = event.clientY - state.lastY;
-        state.moved ||= Math.hypot(event.clientX - state.startX, event.clientY - state.startY) > 7;
+        const dragThreshold = state.pointerType === 'touch' ? 16 : 7;
+        state.moved ||= Math.hypot(event.clientX - state.startX, event.clientY - state.startY) > dragThreshold;
         state.targetYaw -= deltaX * 0.0036;
-        state.targetPitch = clampPitch(state.targetPitch - deltaY * 0.0032);
+        state.targetVertical += deltaY * 0.012;
         state.velocityX = -deltaX * 0.0015;
-        state.velocityY = -deltaY * 0.0013;
+        state.velocityY = deltaY * 0.005;
         state.lastX = event.clientX;
         state.lastY = event.clientY;
     });
 
     canvas.addEventListener('pointerup', (event) => {
+        if (event.pointerId !== state.activePointerId) return;
+
+        const tappedCard = state.pressedCard ?? intersections(event)[0]?.object ?? null;
         root.classList.remove('is-dragging');
         state.dragging = false;
-        canvas.releasePointerCapture(event.pointerId);
-        if (! state.moved) openImage(intersections(event)[0]?.object);
+        state.activePointerId = null;
+        state.pressedCard = null;
+        if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+        if (! state.moved) openImage(tappedCard);
     });
 
     canvas.addEventListener('pointercancel', () => {
         state.dragging = false;
+        state.activePointerId = null;
+        state.pressedCard = null;
         root.classList.remove('is-dragging');
     });
 
     canvas.addEventListener('wheel', (event) => {
         event.preventDefault();
         state.targetYaw -= event.deltaX * 0.00075;
-        state.targetPitch = clampPitch(state.targetPitch - event.deltaY * 0.00065);
+        state.targetVertical -= event.deltaY * 0.006;
         state.velocityX = -event.deltaX * 0.00008;
-        state.velocityY = -event.deltaY * 0.00007;
+        state.velocityY = -event.deltaY * 0.0008;
     }, { passive: false });
 
     closeButton.addEventListener('click', closeImage);
@@ -326,15 +345,17 @@ if (root) {
     function render() {
         if (! state.dragging && ! state.modalOpen) {
             state.targetYaw += state.velocityX;
-            state.targetPitch = clampPitch(state.targetPitch + state.velocityY);
+            state.targetVertical += state.velocityY;
             state.velocityX *= 0.94;
             state.velocityY *= 0.94;
         }
 
         state.yaw += (state.targetYaw - state.yaw) * 0.075;
-        state.pitch += (state.targetPitch - state.pitch) * 0.075;
+        state.vertical += (state.targetVertical - state.vertical) * 0.075;
         camera.rotation.y = state.yaw;
-        camera.rotation.x = state.pitch;
+        cards.forEach((card) => {
+            card.position.y = wrapCentered(card.userData.baseY + state.vertical, verticalSpan);
+        });
         renderer.render(scene, camera);
         requestAnimationFrame(render);
     }
