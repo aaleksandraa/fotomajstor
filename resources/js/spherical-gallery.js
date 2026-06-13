@@ -378,8 +378,8 @@ if (root) {
         const mobile = window.innerWidth < 700;
         const rows = mobile ? 10 : 9;
         const columns = mobile ? 16 : 14;
-        const radius = mobile ? 7.8 : 8.25;
-        const rowGap = mobile ? 2.7 : 3.15;
+        const radius = mobile ? 8.05 : 8.55;
+        const rowGap = mobile ? 2.48 : 2.82;
         verticalSpan = rows * rowGap;
         let cellIndex = 0;
 
