@@ -57,8 +57,13 @@ class HomeController extends Controller
         ];
 
         $seo = [
-            'title' => 'FotoMajstor — fotografi i videografi za vaš događaj',
-            'description' => 'FotoMajstor je regionalni katalog fotografa i videografa za BiH, Srbiju, Hrvatsku, Sloveniju i Crnu Goru. Pretražite po gradu, kategoriji i datumu.',
+            'title' => 'FotoMajstor | Fotografi i Videografi za Vjenčanja, Događaje i Snimanja',
+            'description' => 'Pronađite profesionalne fotografe i videografe u Bosni i Hercegovini, Srbiji, Hrvatskoj, Sloveniji i Crnoj Gori. Pretražite po gradu, kategoriji i datumu, pregledajte portfolio i kontaktirajte profesionalca direktno bez provizije.',
+            'image' => asset('fotoMajstor.jpg'),
+            'imageAlt' => 'FotoMajstor - profesionalni fotografi i videografi',
+            'imageType' => 'image/jpeg',
+            'imageWidth' => 1536,
+            'imageHeight' => 1024,
             'jsonLd' => [Seo::organization(), Seo::website(), Seo::faq($faqs)],
         ];
 

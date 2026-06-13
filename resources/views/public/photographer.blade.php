@@ -129,6 +129,12 @@
                     @endif
 
                     <div class="flex flex-col gap-2">
+                        @if ($photoCount)
+                            <a href="{{ localized_route('photographer.portfolio', $photographer->slug) }}" class="btn-outline justify-center">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18Z"/></svg>
+                                {{ __('Otvori portfolio') }}
+                            </a>
+                        @endif
                         @if ($photographer->phone)
                             <a href="tel:{{ $photographer->phone }}" class="btn-primary justify-center">
                                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4h3l2 5-2 1a11 11 0 0 0 5 5l1-2 5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></svg>
@@ -149,6 +155,12 @@
                 </div>
 
                 <div class="hidden min-w-0 flex-wrap items-center gap-2 sm:flex">
+                    @if ($photoCount)
+                        <a href="{{ localized_route('photographer.portfolio', $photographer->slug) }}" class="btn-outline">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18Z"/></svg>
+                            {{ __('Otvori portfolio') }}
+                        </a>
+                    @endif
                     @if ($photographer->phone)
                         <a href="tel:{{ $photographer->phone }}" class="btn-primary">
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4h3l2 5-2 1a11 11 0 0 0 5 5l1-2 5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></svg>

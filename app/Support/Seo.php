@@ -33,6 +33,7 @@ class Seo
             'name' => config('app.name'),
             'url' => url('/'),
             'logo' => asset('favicon.svg'),
+            'image' => asset('fotoMajstor.jpg'),
         ];
     }
 
@@ -44,6 +45,7 @@ class Seo
             '@type' => 'WebSite',
             'name' => config('app.name'),
             'url' => url('/'),
+            'image' => asset('fotoMajstor.jpg'),
             'potentialAction' => [
                 '@type' => 'SearchAction',
                 'target' => localized_route('search').'?q={search_term_string}',

@@ -5,7 +5,11 @@
     $canonical = \App\Support\LocalizedUrl::for($seo['canonical'] ?? url()->current(), $seo['canonicalLocale'] ?? app()->getLocale());
     $alternates = \App\Support\LocalizedUrl::alternates($canonical, $seo['locales'] ?? null);
     $ogType = $seo['type'] ?? 'website';
-    $image = $seo['image'] ?? asset('og-default.svg');
+    $image = $seo['image'] ?? asset('fotoMajstor.jpg');
+    $imageAlt = $seo['imageAlt'] ?? $title;
+    $imageType = $seo['imageType'] ?? null;
+    $imageWidth = $seo['imageWidth'] ?? null;
+    $imageHeight = $seo['imageHeight'] ?? null;
     $robots = $seo['robots'] ?? 'index, follow';
     $jsonLd = $seo['jsonLd'] ?? [];
     if (! empty($jsonLd) && array_is_list($jsonLd) === false) {
@@ -27,11 +31,16 @@
 <meta property="og:description" content="{{ $description }}">
 <meta property="og:url" content="{{ $canonical }}">
 <meta property="og:image" content="{{ $image }}">
+<meta property="og:image:alt" content="{{ $imageAlt }}">
+@if ($imageType)<meta property="og:image:type" content="{{ $imageType }}">@endif
+@if ($imageWidth)<meta property="og:image:width" content="{{ $imageWidth }}">@endif
+@if ($imageHeight)<meta property="og:image:height" content="{{ $imageHeight }}">@endif
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ $title }}">
 <meta name="twitter:description" content="{{ $description }}">
 <meta name="twitter:image" content="{{ $image }}">
+<meta name="twitter:image:alt" content="{{ $imageAlt }}">
 
 @foreach ($jsonLd as $schema)
 <script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>

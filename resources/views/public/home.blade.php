@@ -14,7 +14,7 @@
                 {{ __('Pronađite fotografa ili videografa za vaš događaj') }}
             </h1>
             <p class="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-ink-600 sm:text-lg">
-                {{ __('Od romantičnih vjenčanja do dinamičnih komercijalnih spotova — pretražite provjerene profesionalce po gradu, kategoriji i dostupnosti.') }}
+                {{ __('Od romantičnih vjenčanja do dinamičnih komercijalnih spotova, pretražite provjerene profesionalce po gradu, kategoriji i dostupnosti.') }}
             </p>
 
             <div class="mx-auto mt-8 w-full">

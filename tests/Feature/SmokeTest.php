@@ -83,6 +83,7 @@ class SmokeTest extends TestCase
             ['/blog/test-clanak'],
             ['/fotografi/vjencanja'],
             ['/fotograf/test-fotograf'],
+            ['/fotograf/test-fotograf/portfolio'],
             ['/fotograf/test-fotograf/portfolio/galerija'],
             ['/bih/fotografi'],
             ['/bih/fotografi/banja-luka'],
@@ -106,17 +107,25 @@ class SmokeTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('<title>FotoMajstor — fotografi i videografi za vaš događaj</title>', false)
+            ->assertSee('<title>FotoMajstor | Fotografi i Videografi za Vjenčanja, Događaje i Snimanja</title>', false)
+            ->assertSee('<meta name="description" content="Pronađite profesionalne fotografe i videografe u Bosni i Hercegovini, Srbiji, Hrvatskoj, Sloveniji i Crnoj Gori.', false)
             ->assertSee('<meta property="og:site_name" content="FotoMajstor">', false)
+            ->assertSee('<meta property="og:image" content="'.asset('fotoMajstor.jpg').'">', false)
+            ->assertSee('<meta property="og:image:type" content="image/jpeg">', false)
+            ->assertSee('<meta property="og:image:width" content="1536">', false)
+            ->assertSee('<meta property="og:image:height" content="1024">', false)
+            ->assertSee('<meta name="twitter:image" content="'.asset('fotoMajstor.jpg').'">', false)
             ->assertSee('"@type":"Organization","name":"FotoMajstor"', false)
+            ->assertSee('"image":"'.asset('fotoMajstor.jpg').'"', false)
             ->assertSee('"@type":"WebSite","name":"FotoMajstor"', false)
             ->assertDontSee('FotoMreža')
             ->assertDontSee('Pronađi Fotografa');
 
         $this->get('/en')
             ->assertOk()
-            ->assertSee('<title>FotoMajstor — photographers and videographers for your event</title>', false)
+            ->assertSee('<title>FotoMajstor | Photographers and Videographers for Weddings, Events and Productions</title>', false)
             ->assertSee('<meta property="og:site_name" content="FotoMajstor">', false)
+            ->assertSee('<meta property="og:image" content="'.asset('fotoMajstor.jpg').'">', false)
             ->assertDontSee('Find a Photographer');
     }
 
@@ -175,6 +184,20 @@ class SmokeTest extends TestCase
         $this->get('/fotograf/drugi-fotograf/portfolio/galerija')
             ->assertOk()
             ->assertSee('Slika drugog fotografa');
+    }
+
+    public function test_profile_links_to_the_immersive_portfolio_with_its_images(): void
+    {
+        $this->get('/fotograf/test-fotograf')
+            ->assertOk()
+            ->assertSee(route('photographer.portfolio', 'test-fotograf'))
+            ->assertSee('Otvori portfolio');
+
+        $this->get('/fotograf/test-fotograf/portfolio')
+            ->assertOk()
+            ->assertSee('data-spherical-gallery', false)
+            ->assertSee('rel="preload" as="image"', false)
+            ->assertSee('https://picsum.photos/seed/x/800/600');
     }
 
     public function test_legacy_city_and_category_aliases_redirect_to_canonical_urls(): void

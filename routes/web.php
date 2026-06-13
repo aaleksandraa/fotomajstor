@@ -54,6 +54,7 @@ $publicRoutes = function (): void {
     Route::get('/fotografi/{category}', [CategoryController::class, 'show'])->name('category.show');
 
     Route::get('/fotograf/{photographer:slug}/blog/{post}', [PhotographerController::class, 'blogPost'])->name('photographer.blog.show');
+    Route::get('/fotograf/{photographer:slug}/portfolio', [PhotographerController::class, 'portfolio'])->name('photographer.portfolio');
     Route::get('/fotograf/{photographer:slug}/portfolio/{album:slug}', [PhotographerController::class, 'portfolioAlbum'])
         ->scopeBindings()
         ->name('photographer.portfolio.album');

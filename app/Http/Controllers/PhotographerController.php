@@ -130,6 +130,37 @@ class PhotographerController extends Controller
         return view('public.portfolio-album', compact('photographer', 'album', 'seo'));
     }
 
+    public function portfolio(PhotographerProfile $photographer)
+    {
+        abort_unless($photographer->active, 404);
+
+        $photographer->load([
+            'primaryCity',
+            'albums' => fn ($query) => $query->active()->with('images'),
+        ]);
+
+        $images = $photographer->albums
+            ->flatMap(fn (PortfolioAlbum $album) => $album->images)
+            ->map(fn ($image) => [
+                'src' => media_url($image->image_path),
+                'alt' => $image->alt_text,
+            ])
+            ->values();
+
+        $seo = [
+            'title' => "Portfolio - {$photographer->display_name}",
+            'description' => "Interaktivni portfolio fotografa {$photographer->display_name}.",
+            'canonical' => localized_route('photographer.portfolio', $photographer->slug),
+            'canonicalLocale' => config('locales.default'),
+            'robots' => 'noindex, follow',
+            'image' => $images->first()['src'] ?? media_url($photographer->cover_image ?? $photographer->profile_image),
+            'type' => 'profile',
+            'locales' => [config('locales.default')],
+        ];
+
+        return view('public.photographer-portfolio', compact('photographer', 'images', 'seo'));
+    }
+
     protected function recordView(Request $request, PhotographerProfile $photographer): void
     {
         $key = 'viewed_profile_'.$photographer->id;
