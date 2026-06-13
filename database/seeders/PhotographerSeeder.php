@@ -96,13 +96,13 @@ class PhotographerSeeder extends Seeder
                     'first_name' => $isCompany ? null : $firstName,
                     'last_name' => $isCompany ? null : $lastName,
                     'company_name' => $companyName,
-                    'company_tax_number' => $isCompany ? (string) fake()->numerify('##########') : null,
+                    'company_tax_number' => $isCompany ? $this->numerify('##########') : null,
                     'slug' => $slug,
                     'profile_image' => placeholder_image('avatar-'.$slug, 400, 400),
                     'cover_image' => placeholder_image('cover-'.$slug, 1600, 900),
                     'about' => $this->bio($displayName, $serviceType),
                     'experience_years' => random_int(2, 18),
-                    'phone' => '+387 6'.random_int(1, 6).' '.fake()->numerify('### ###'),
+                    'phone' => '+387 6'.random_int(1, 6).' '.$this->numerify('### ###'),
                     'public_email' => 'kontakt@'.$baseSlug.'.ba',
                     'website' => $isCompany ? 'https://www.'.$baseSlug.'.ba' : null,
                     'primary_country_id' => $primaryCity->country_id,
@@ -175,8 +175,10 @@ class PhotographerSeeder extends Seeder
             // Unavailable dates (3-8 upcoming days)
             $busyDays = collect(range(1, 60))->shuffle()->take(random_int(3, 8));
             foreach ($busyDays as $offset) {
+                $date = now()->addDays($offset)->startOfDay();
+
                 UnavailableDate::updateOrCreate(
-                    ['photographer_profile_id' => $profile->id, 'date' => now()->addDays($offset)->toDateString()],
+                    ['photographer_profile_id' => $profile->id, 'date' => $date],
                     ['note' => 'Zauzeto']
                 );
             }
@@ -232,6 +234,11 @@ class PhotographerSeeder extends Seeder
         ];
 
         return $templates[array_rand($templates)];
+    }
+
+    private function numerify(string $pattern): string
+    {
+        return preg_replace_callback('/#/', fn (): string => (string) random_int(0, 9), $pattern);
     }
 
     private function blogContent(string $title): string

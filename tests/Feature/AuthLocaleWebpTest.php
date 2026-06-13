@@ -7,6 +7,7 @@ use App\Enums\ServiceType;
 use App\Enums\UserRole;
 use App\Filament\Dashboard\Pages\Auth\EmailVerificationPrompt;
 use App\Filament\Dashboard\Pages\Auth\Register;
+use App\Models\Category;
 use App\Models\City;
 use App\Models\User;
 use App\Services\ImageService;
@@ -111,6 +112,16 @@ class AuthLocaleWebpTest extends TestCase
             ->assertOk()
             ->assertSee('Bosnia and Herzegovina')
             ->assertSee('Croatia');
+    }
+
+    public function test_seeded_categories_use_relevant_stable_images(): void
+    {
+        $this->seed(CategorySeeder::class);
+
+        $this->assertSame(0, Category::where('image', 'like', '%picsum%')->count());
+        $this->assertStringContainsString('photo-1519741497674-611481863552', Category::where('slug', 'vjencanja')->value('image'));
+        $this->assertStringContainsString('photo-1504674900247-0877df9cc836', Category::where('slug', 'fotografisanje-hrane')->value('image'));
+        $this->assertStringContainsString('photo-1600566753086-00f18fb6b3ea', Category::where('slug', 'enterijer')->value('image'));
     }
 
     public function test_registration_creates_photographer_with_enriched_profile(): void
