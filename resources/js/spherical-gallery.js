@@ -31,7 +31,13 @@ if (root) {
 
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
+    const clock = new THREE.Clock();
     const cards = [];
+    const shaderUniforms = {
+        time: { value: 0 },
+        motion: { value: 0 },
+        direction: { value: new THREE.Vector2() },
+    };
     const state = {
         dragging: false,
         moved: false,
@@ -50,6 +56,7 @@ if (root) {
         activePointerId: null,
         pressedCard: null,
         pointerType: 'mouse',
+        motion: 0,
     };
 
     let verticalSpan = 1;
@@ -139,6 +146,45 @@ if (root) {
         return texture;
     }
 
+    function addMotionShader(material) {
+        material.onBeforeCompile = (shader) => {
+            shader.uniforms.uGalleryTime = shaderUniforms.time;
+            shader.uniforms.uGalleryMotion = shaderUniforms.motion;
+            shader.uniforms.uGalleryDirection = shaderUniforms.direction;
+            shader.vertexShader = shader.vertexShader
+                .replace(
+                    '#include <common>',
+                    `#include <common>
+                    uniform float uGalleryTime;
+                    uniform float uGalleryMotion;
+                    uniform vec2 uGalleryDirection;
+                    varying vec2 vGalleryUv;`,
+                )
+                .replace(
+                    '#include <begin_vertex>',
+                    `#include <begin_vertex>
+                    vGalleryUv = uv;
+                    float galleryWave = sin((uv.y * 5.0) + (uv.x * 2.5) + (uGalleryTime * 1.6));
+                    transformed.z += galleryWave * uGalleryMotion * 0.11;
+                    transformed.x += (uv.y - 0.5) * uGalleryDirection.x * uGalleryMotion * 0.16;
+                    transformed.y += (uv.x - 0.5) * uGalleryDirection.y * uGalleryMotion * 0.12;`,
+                );
+            shader.fragmentShader = shader.fragmentShader
+                .replace(
+                    '#include <common>',
+                    `#include <common>
+                    varying vec2 vGalleryUv;`,
+                )
+                .replace(
+                    '#include <opaque_fragment>',
+                    `float galleryEdge = min(min(vGalleryUv.x, 1.0 - vGalleryUv.x), min(vGalleryUv.y, 1.0 - vGalleryUv.y));
+                    diffuseColor.rgb *= mix(0.72, 1.0, smoothstep(0.0, 0.13, galleryEdge));
+                    #include <opaque_fragment>`,
+                );
+        };
+        material.customProgramCacheKey = () => 'fotomajstor-gallery-motion-v1';
+    }
+
     function loadTexture(textureLoader, image, index) {
         return textureLoader.loadAsync(image.src)
             .then((texture) => prepareTexture(texture))
@@ -205,7 +251,7 @@ if (root) {
         const rows = mobile ? 10 : 11;
         const columns = mobile ? 16 : 20;
         const radius = mobile ? 8.2 : 9.6;
-        const rowGap = mobile ? 2.9 : 3.15;
+        const rowGap = 2.7;
         verticalSpan = rows * rowGap;
         let cellIndex = 0;
 
@@ -231,6 +277,7 @@ if (root) {
                     side: THREE.FrontSide,
                     toneMapped: false,
                 });
+                addMotionShader(material);
                 const mesh = new THREE.Mesh(geometry, material);
 
                 mesh.position.set(
@@ -294,9 +341,9 @@ if (root) {
         const dragThreshold = state.pointerType === 'touch' ? 16 : 7;
         state.moved ||= Math.hypot(event.clientX - state.startX, event.clientY - state.startY) > dragThreshold;
         state.targetYaw -= deltaX * 0.0036;
-        state.targetVertical += deltaY * 0.012;
+        state.targetVertical -= deltaY * 0.012;
         state.velocityX = -deltaX * 0.0015;
-        state.velocityY = deltaY * 0.005;
+        state.velocityY = -deltaY * 0.005;
         state.lastX = event.clientX;
         state.lastY = event.clientY;
     });
@@ -343,6 +390,8 @@ if (root) {
     });
 
     function render() {
+        shaderUniforms.time.value += Math.min(clock.getDelta(), 0.05);
+
         if (! state.dragging && ! state.modalOpen) {
             state.targetYaw += state.velocityX;
             state.targetVertical += state.velocityY;
@@ -352,7 +401,21 @@ if (root) {
 
         state.yaw += (state.targetYaw - state.yaw) * 0.075;
         state.vertical += (state.targetVertical - state.vertical) * 0.075;
+        const motionTarget = Math.min(
+            Math.abs(state.targetYaw - state.yaw) * 1.8
+            + Math.abs(state.targetVertical - state.vertical) * 0.1
+            + Math.abs(state.velocityX) * 14
+            + Math.abs(state.velocityY) * 4,
+            1,
+        );
+        state.motion += (motionTarget - state.motion) * 0.09;
+        shaderUniforms.motion.value = state.motion;
+        shaderUniforms.direction.value.set(
+            THREE.MathUtils.clamp(state.velocityX * 24, -1, 1),
+            THREE.MathUtils.clamp(state.velocityY * 8, -1, 1),
+        );
         camera.rotation.y = state.yaw;
+        camera.rotation.z += ((state.velocityX * 0.8) - camera.rotation.z) * 0.055;
         cards.forEach((card) => {
             card.position.y = wrapCentered(card.userData.baseY + state.vertical, verticalSpan);
         });
