@@ -193,7 +193,7 @@ class SmokeTest extends TestCase
         $this->get('/fotograf/test-fotograf')
             ->assertOk()
             ->assertSee(route('photographer.portfolio', 'test-fotograf'))
-            ->assertSee('Otvori portfolio');
+            ->assertSee('Virtualna galerija');
 
         $this->get('/fotograf/test-fotograf/portfolio')
             ->assertOk()

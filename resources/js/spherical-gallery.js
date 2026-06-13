@@ -185,16 +185,14 @@ if (root) {
         if (state.hovered === mesh) return;
 
         if (state.hovered) {
-            gsap.to(state.hovered.scale, { x: 1, y: 1, z: 1, duration: 0.45, ease: 'power3.out' });
-            gsap.to(state.hovered.material, { opacity: 0.9, duration: 0.35 });
+            gsap.to(state.hovered.material.userData.hoverUniform, { value: 0, duration: 0.4, ease: 'power3.out' });
         }
 
         state.hovered = mesh;
         root.classList.toggle('is-hovering', Boolean(mesh));
 
         if (mesh) {
-            gsap.to(mesh.scale, { x: 1.075, y: 1.075, z: 1.075, duration: 0.45, ease: 'power3.out' });
-            gsap.to(mesh.material, { opacity: 1, duration: 0.35 });
+            gsap.to(mesh.material.userData.hoverUniform, { value: 1, duration: 0.4, ease: 'power3.out' });
         }
     }
 
@@ -254,10 +252,12 @@ if (root) {
     }
 
     function addMotionShader(material) {
+        material.userData.hoverUniform = { value: 0 };
         material.onBeforeCompile = (shader) => {
             shader.uniforms.uGalleryTime = shaderUniforms.time;
             shader.uniforms.uGalleryMotion = shaderUniforms.motion;
             shader.uniforms.uGalleryDirection = shaderUniforms.direction;
+            shader.uniforms.uGalleryHover = material.userData.hoverUniform;
             shader.vertexShader = shader.vertexShader
                 .replace(
                     '#include <common>',
@@ -280,12 +280,14 @@ if (root) {
                 .replace(
                     '#include <common>',
                     `#include <common>
-                    varying vec2 vGalleryUv;`,
+                    varying vec2 vGalleryUv;
+                    uniform float uGalleryHover;`,
                 )
                 .replace(
                     '#include <opaque_fragment>',
                     `float galleryEdge = min(min(vGalleryUv.x, 1.0 - vGalleryUv.x), min(vGalleryUv.y, 1.0 - vGalleryUv.y));
                     diffuseColor.rgb *= mix(0.72, 1.0, smoothstep(0.0, 0.13, galleryEdge));
+                    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.96, 0.86, 0.74), uGalleryHover * 0.18);
                     #include <opaque_fragment>`,
                 );
         };
@@ -378,8 +380,8 @@ if (root) {
         const mobile = window.innerWidth < 700;
         const rows = mobile ? 10 : 9;
         const columns = mobile ? 16 : 14;
-        const radius = mobile ? 8.05 : 8.55;
-        const rowGap = mobile ? 2.48 : 2.82;
+        const radius = mobile ? 8.85 : 9.0;
+        const rowGap = mobile ? 3.12 : 3.42;
         verticalSpan = rows * rowGap;
         let cellIndex = 0;
 
