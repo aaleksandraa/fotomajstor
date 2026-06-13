@@ -292,6 +292,27 @@ if (root) {
         material.customProgramCacheKey = () => 'fotomajstor-gallery-motion-v1';
     }
 
+    function createCurvedCardGeometry(width, height, mobile) {
+        const geometry = new THREE.PlaneGeometry(width, height, mobile ? 12 : 20, mobile ? 4 : 6);
+        const positions = geometry.attributes.position;
+        const horizontalRadius = mobile ? 5.2 : 5.8;
+        const verticalRadius = mobile ? 15 : 18;
+
+        for (let index = 0; index < positions.count; index++) {
+            const x = positions.getX(index);
+            const y = positions.getY(index);
+            const horizontalDepth = horizontalRadius - Math.sqrt(Math.max(horizontalRadius ** 2 - x ** 2, 0));
+            const verticalDepth = verticalRadius - Math.sqrt(Math.max(verticalRadius ** 2 - y ** 2, 0));
+
+            positions.setZ(index, horizontalDepth + verticalDepth * 0.28);
+        }
+
+        positions.needsUpdate = true;
+        geometry.computeVertexNormals();
+
+        return geometry;
+    }
+
     function loadTexture(textureLoader, image, index) {
         return textureLoader.loadAsync(image.src)
             .then((texture) => prepareTexture(texture))
@@ -357,7 +378,7 @@ if (root) {
         const mobile = window.innerWidth < 700;
         const rows = mobile ? 10 : 9;
         const columns = mobile ? 16 : 14;
-        const radius = mobile ? 8.2 : 8.9;
+        const radius = mobile ? 7.8 : 8.25;
         const rowGap = mobile ? 2.7 : 3.15;
         verticalSpan = rows * rowGap;
         let cellIndex = 0;
@@ -376,7 +397,7 @@ if (root) {
                 const aspect = source?.width && source?.height ? source.width / source.height : 1.25;
                 const width = mobile ? 2.85 : 3.65;
                 const height = THREE.MathUtils.clamp(width / aspect, mobile ? 1.95 : 2.45, mobile ? 2.55 : 3.02);
-                const geometry = new THREE.PlaneGeometry(width, height);
+                const geometry = createCurvedCardGeometry(width, height, mobile);
                 const material = new THREE.MeshBasicMaterial({
                     map: texture,
                     transparent: true,
