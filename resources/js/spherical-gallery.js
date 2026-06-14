@@ -157,8 +157,23 @@ if (root) {
     };
 
     let verticalSpan = 1;
+    let verticalRadius = 12;
 
     const wrapCentered = (value, span) => THREE.MathUtils.euclideanModulo(value + span / 2, span) - span / 2;
+
+    // Maps a vertical offset onto a barrel/cylinder surface so that scrolling up and
+    // down curves the cards around a horizontal axis (phantom.land-like perspective).
+    function placeOnCylinder(card, offsetY) {
+        const latitude = offsetY / verticalRadius;
+        const cosLat = Math.cos(latitude);
+        const r = card.userData.radius;
+        card.position.set(
+            card.userData.dirX * r * cosLat,
+            verticalRadius * Math.sin(latitude),
+            card.userData.dirZ * r * cosLat,
+        );
+        card.lookAt(0, 0, 0);
+    }
 
     function pointerPosition(event) {
         const uv = new THREE.Vector2(event.clientX / window.innerWidth, 1 - event.clientY / window.innerHeight);
@@ -379,10 +394,11 @@ if (root) {
 
         const mobile = window.innerWidth < 700;
         const rows = mobile ? 10 : 9;
-        const columns = mobile ? 16 : 14;
+        const columns = mobile ? 18 : 14;
         const radius = mobile ? 8.85 : 9.0;
-        const rowGap = mobile ? 3.12 : 3.42;
+        const rowGap = mobile ? 2.5 : 2.96;
         verticalSpan = rows * rowGap;
+        verticalRadius = radius * 1.42;
         let cellIndex = 0;
 
         for (let row = 0; row < rows; row++) {
@@ -397,8 +413,8 @@ if (root) {
                 const longitude = (column / columns) * Math.PI * 2 + stagger;
                 const source = texture.image;
                 const aspect = source?.width && source?.height ? source.width / source.height : 1.25;
-                const width = mobile ? 2.85 : 3.65;
-                const height = THREE.MathUtils.clamp(width / aspect, mobile ? 1.95 : 2.45, mobile ? 2.55 : 3.02);
+                const width = mobile ? 2.78 : 3.65;
+                const height = THREE.MathUtils.clamp(width / aspect, mobile ? 1.9 : 2.4, mobile ? 2.35 : 2.82);
                 const geometry = createCurvedCardGeometry(width, height, mobile);
                 const material = new THREE.MeshBasicMaterial({
                     map: texture,
@@ -410,13 +426,16 @@ if (root) {
                 addMotionShader(material);
                 const mesh = new THREE.Mesh(geometry, material);
 
-                mesh.position.set(
-                    radius * Math.sin(longitude),
+                mesh.userData = {
+                    ...image,
+                    imageIndex,
+                    textureLoaded,
                     baseY,
-                    -radius * Math.cos(longitude),
-                );
-                mesh.lookAt(0, baseY, 0);
-                mesh.userData = { ...image, imageIndex, textureLoaded, baseY };
+                    radius,
+                    dirX: Math.sin(longitude),
+                    dirZ: -Math.cos(longitude),
+                };
+                placeOnCylinder(mesh, baseY);
                 gallery.add(mesh);
                 cards.push(mesh);
                 cellIndex++;
@@ -581,7 +600,7 @@ if (root) {
         lensUniforms.strength.value = state.lensStrength;
         lensUniforms.motion.value = state.motion;
         cards.forEach((card) => {
-            card.position.y = wrapCentered(card.userData.baseY + state.vertical, verticalSpan);
+            placeOnCylinder(card, wrapCentered(card.userData.baseY + state.vertical, verticalSpan));
         });
         renderer.setRenderTarget(renderTarget);
         renderer.render(scene, camera);
